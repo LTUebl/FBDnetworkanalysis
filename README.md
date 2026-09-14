@@ -2,6 +2,8 @@
 **Interactive Pin-Jointed Deformable Body & Free Body Diagram Explorer**  
 *Based on Figure 3.3 ("Schematic of a polymer network") in Christopher R. Jacobs, Hayden Huang, and Ronald Y. Kwon, Introduction to Cell Mechanics and Mechanobiology.*
 
+🌐 **Live Web App**: [https://ltuebl.github.io/FBDnetworkanalysis/](https://ltuebl.github.io/FBDnetworkanalysis/)
+
 ---
 
 ## Overview
