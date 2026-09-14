@@ -1,0 +1,3225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polymer Network Mechanics Simulator - Jacobs Fig 3.3</title>
+  <style>
+/* style.css - Clean, modern design system for Polymer Network Mechanics Simulation */
+
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-focus: #3b82f6;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  --tension-color: #2563eb;
+  --tension-bg: #eff6ff;
+  --tension-border: #bfdbfe;
+  
+  --compression-color: #ea580c;
+  --compression-bg: #fff7ed;
+  --compression-border: #fed7aa;
+
+  --accent-primary: #0284c7;
+  --accent-hover: #0369a1;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* App Header */
+.app-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.brand-title h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.brand-title p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn:hover {
+  background: var(--bg-subtle);
+  border-color: #cbd5e1;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-sm {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+/* 3-Panel Main Layout */
+.app-container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.95fr 1.15fr;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  flex: 1;
+  max-width: 1780px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 1280px) {
+  .app-container {
+    grid-template-columns: 1fr 1fr;
+  }
+  .panel-right {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+  .panel-right {
+    grid-column: span 1;
+  }
+}
+
+/* Common Panel Card Styling */
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+}
+
+.panel-header h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+.badge-tension {
+  background: var(--tension-bg);
+  color: var(--tension-color);
+  border: 1px solid var(--tension-border);
+}
+
+.badge-compression {
+  background: var(--compression-bg);
+  color: var(--compression-color);
+  border: 1px solid var(--compression-border);
+}
+
+.panel-body {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+/* ========================================================
+   Panel 1: Main Simulation Panel (Left)
+   ======================================================== */
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+canvas.sim-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-toolbar {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.canvas-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ========================================================
+   Panel 2: Controls & Status Panel (Center)
+   ======================================================== */
+.control-card {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.control-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.slider-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+input[type="range"] {
+  accent-color: var(--accent-primary);
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Preset Buttons */
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.preset-btn {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: left;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.preset-btn span.name {
+  color: var(--text-main);
+}
+
+.preset-btn span.desc {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.preset-btn:hover {
+  border-color: var(--accent-primary);
+  background: #f0f9ff;
+}
+
+.preset-btn.active {
+  border-color: var(--accent-primary);
+  background: #e0f2fe;
+}
+
+/* Boundary Conditions / Node Fixation Grid */
+.fixation-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.fixation-item {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.fixation-item .node-num {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.fixation-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Status Dashboard Grid */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.status-stat {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-stat .stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.status-stat .stat-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+  margin-top: 0.1rem;
+}
+
+.status-stat .stat-sub {
+  font-size: 0.68rem;
+  color: var(--text-light);
+}
+
+/* ========================================================
+   Panel 3: FBD & Data Explorer (Right)
+   ======================================================== */
+.node-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.node-chip {
+  padding: 0.5rem 0.4rem;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.node-chip:hover {
+  border-color: var(--accent-primary);
+  background: #f0f9ff;
+}
+
+.node-chip.active {
+  border-color: var(--accent-primary);
+  background: #e0f2fe;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.node-chip .chip-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.node-chip .chip-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.fbd-wrapper {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+canvas.fbd-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Equilibrium Box */
+.eq-box {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.eq-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2rem 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.eq-row:last-child {
+  border-bottom: none;
+}
+
+.eq-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.eq-val {
+  font-weight: 600;
+}
+
+.eq-val.balanced {
+  color: var(--success);
+}
+
+.eq-val.unbalanced {
+  color: var(--danger);
+}
+
+.fbd-explanation {
+  background: #eff6ff;
+  border: 1px solid var(--tension-border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.76rem;
+  color: #1e3a8a;
+  line-height: 1.45;
+}
+
+/* Data Table */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+  text-align: left;
+}
+
+table.data-table th {
+  background: #f1f5f9;
+  padding: 0.5rem 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+}
+
+table.data-table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+}
+
+table.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+table.data-table tr:hover {
+  background: #f8fafc;
+}
+
+/* Modal Popup (Jacobs Chapter 3 Theory) */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  max-width: 680px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.modal-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.theory-callout {
+  background: #f8fafc;
+  border-left: 4px solid var(--accent-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.math-block {
+  background: #f1f5f9;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  overflow-x: auto;
+}
+
+</style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="./EBLlogo.png" alt="EBL Logo" style="height: 38px; width: auto; border-radius: 4px; object-fit: contain;">
+      <div class="brand-title">
+        <h1>Polymer Network Mechanics Simulator</h1>
+        <p>Interactive Pin-Jointed Deformable Body &amp; Free Body Diagram Explorer &bull; Jacobs, Huang &amp; Kwon (Fig 3.3)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btn-open-theory" class="btn" title="View Textbook Theory &amp; Derivation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        Theory &amp; Statics
+      </button>
+      <button id="btn-reset" class="btn" title="Reset Simulation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        Reset
+      </button>
+      <button id="btn-export-csv" class="btn btn-primary" title="Export Calculated Statics Data">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export CSV
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Panel Main Layout -->
+  <main class="app-container">
+
+    <!-- ========================================================
+         PANEL 1 (LEFT): MAIN SIMULATION PANEL
+         ======================================================== -->
+    <section class="panel panel-left">
+      <div class="panel-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          Main Simulation Panel
+        </h2>
+        <div class="canvas-hint">
+          <span>Tip: Click &amp; drag pins directly</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="canvas-wrapper">
+          <canvas id="sim-canvas" class="sim-canvas"></canvas>
+          <div class="canvas-toolbar">
+            <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; cursor: pointer;">
+              <input type="checkbox" id="chk-ghost" checked>
+              <span>Undeformed Ghost</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Scale & Visual Controls -->
+        <div class="control-card">
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Deformation Display Scale</span>
+              <span id="val-scale" class="slider-val">1.0x</span>
+            </div>
+            <input type="range" id="slider-scale" min="0.5" max="3.0" step="0.1" value="1.0">
+            <span style="font-size: 0.7rem; color: var(--text-light);">Magnifies visual displacement for small strain visualization</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PANEL 2 (CENTER): CONTROLS & STATUS
+         ======================================================== -->
+    <section class="panel panel-center">
+      <div class="panel-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Controls &amp; Status
+        </h2>
+        <span class="badge">Live Feedback</span>
+      </div>
+
+      <div class="panel-body">
+        <!-- Status Dashboard -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Status Dashboard</span>
+            <span class="badge" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">Stable Equilibrium</span>
+          </div>
+          <div class="status-grid">
+            <div class="status-stat">
+              <span class="stat-label">Maximum Stress (&sigma;<sub>max</sub>)</span>
+              <span id="stat-max-stress" class="stat-value">0.0 kPa</span>
+              <span id="stat-crit-member" class="stat-sub">Member: -</span>
+            </div>
+            <div class="status-stat">
+              <span class="stat-label">Bottom Displacement (|&Delta;u|)</span>
+              <span id="stat-disp" class="stat-value">0.00 mm</span>
+              <span class="stat-sub">Pin 4 vertical drop</span>
+            </div>
+            <div class="status-stat">
+              <span class="stat-label">Strain Energy (U)</span>
+              <span id="stat-energy" class="stat-value">0.0 mJ</span>
+              <span class="stat-sub">&Sigma; &frac12; k &Delta;L<sup>2</sup></span>
+            </div>
+            <div class="status-stat">
+              <span class="stat-label">Solver Framework</span>
+              <select id="select-solver" style="margin-top:0.25rem; font-size:0.75rem; padding:0.2rem; border-radius:4px; border:1px solid #cbd5e1;">
+                <option value="nonlinear" selected>Nonlinear (Large Strain)</option>
+                <option value="linear">Linear (Small Strain)</option>
+              </select>
+              <span class="stat-sub">Newton-Raphson vs Matrix</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applied Load Sliders -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Applied Load (Node 4 - Bottom Pin)</span>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Vertical Force (F<sub>y</sub>)</span>
+              <span id="val-fy" class="slider-val">-25 N</span>
+            </div>
+            <input type="range" id="slider-fy" min="-80" max="60" step="1" value="-25">
+            <span style="font-size:0.68rem; color:var(--text-light);">&darr; Negative = downward tension, &uarr; Positive = upward compression</span>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Horizontal Force (F<sub>x</sub>)</span>
+              <span id="val-fx" class="slider-val">0 N</span>
+            </div>
+            <input type="range" id="slider-fx" min="-40" max="40" step="1" value="0">
+            <span style="font-size:0.68rem; color:var(--text-light);">&larr; Negative = left, &rarr; Positive = right (induces shear)</span>
+          </div>
+        </div>
+
+        <!-- Spring Stiffness Controls -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Spring Stiffness (k)</span>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Outer Diagonals (k<sub>outer</sub>)</span>
+              <span id="val-kouter" class="slider-val">50 N/mm</span>
+            </div>
+            <input type="range" id="slider-kouter" min="10" max="150" step="5" value="50">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Middle Cross-Spring (k<sub>mid</sub>)</span>
+              <span id="val-kmid" class="slider-val">40 N/mm</span>
+            </div>
+            <input type="range" id="slider-kmid" min="5" max="150" step="5" value="40">
+          </div>
+        </div>
+
+        <!-- Node Fixation / Boundary Conditions -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Toggle Node Fixation</span>
+          </div>
+          <div class="fixation-grid">
+            <div class="fixation-item">
+              <div class="node-num">Pin 1 (Top)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-1-x" checked> Fix X</label>
+                <label><input type="checkbox" id="fix-1-y" checked> Fix Y</label>
+              </div>
+            </div>
+            <div class="fixation-item">
+              <div class="node-num">Pin 2 (Left)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-2-x"> Fix X</label>
+                <label><input type="checkbox" id="fix-2-y"> Fix Y</label>
+              </div>
+            </div>
+            <div class="fixation-item">
+              <div class="node-num">Pin 3 (Right)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-3-x"> Fix X</label>
+                <label><input type="checkbox" id="fix-3-y"> Fix Y</label>
+              </div>
+            </div>
+            <div class="fixation-item">
+              <div class="node-num">Pin 4 (Bot)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-4-x"> Fix X</label>
+                <label><input type="checkbox" id="fix-4-y"> Fix Y</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Educational Presets -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Educational Presets</span>
+          </div>
+          <div class="preset-grid">
+            <button class="preset-btn active" data-preset="textbook">
+              <span class="name">1. Textbook Baseline</span>
+              <span class="desc">Jacobs Fig 3.3 tensile pull</span>
+            </button>
+            <button class="preset-btn" data-preset="soft-cross">
+              <span class="name">2. Soft Cross-Linker</span>
+              <span class="desc">Compliant middle polymer</span>
+            </button>
+            <button class="preset-btn" data-preset="rigid-cross">
+              <span class="name">3. Rigid Cross-Linker</span>
+              <span class="desc">Resists lateral pinch</span>
+            </button>
+            <button class="preset-btn" data-preset="shear">
+              <span class="name">4. Asymmetric Shear</span>
+              <span class="desc">Diagonal load test</span>
+            </button>
+            <button class="preset-btn" data-preset="compression-test">
+              <span class="name">5. Network Compression</span>
+              <span class="desc">Upward push on pin 4</span>
+            </button>
+            <button class="preset-btn" data-preset="biaxial">
+              <span class="name">6. Biaxial Pull</span>
+              <span class="desc">Transverse lateral stretch</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Unit System Toggle -->
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">
+          <span style="color:var(--text-muted);">Units:</span>
+          <select id="select-units" style="font-size:0.75rem; padding:0.2rem 0.4rem; border-radius:4px; border:1px solid #cbd5e1;">
+            <option value="macro" selected>Macro Scale (N, mm, kPa)</option>
+            <option value="micro">Cellular Scale (nN, &mu;m, Pa)</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PANEL 3 (RIGHT): FBD & DATA EXPLORER
+         ======================================================== -->
+    <section class="panel panel-right">
+      <div class="panel-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          FBD &amp; Data Explorer
+        </h2>
+        <span class="badge" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">Analytical Practice</span>
+      </div>
+
+      <div class="panel-body">
+        <!-- Node Selection Matrix -->
+        <div>
+          <div class="control-title" style="margin-bottom:0.4rem;">
+            <span>Isolate Pin / Node</span>
+          </div>
+          <div class="node-matrix">
+            <div class="node-chip" data-node="0">
+              <div class="chip-title">Pin 1</div>
+              <div class="chip-sub">Top (Support)</div>
+            </div>
+            <div class="node-chip" data-node="1">
+              <div class="chip-title">Pin 2</div>
+              <div class="chip-sub">Left Pin</div>
+            </div>
+            <div class="node-chip" data-node="2">
+              <div class="chip-title">Pin 3</div>
+              <div class="chip-sub">Right Pin</div>
+            </div>
+            <div class="node-chip active" data-node="3">
+              <div class="chip-title">Pin 4</div>
+              <div class="chip-sub">Bottom (Loaded)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Free Body Diagram Canvas -->
+        <div class="fbd-wrapper">
+          <canvas id="fbd-canvas" class="fbd-canvas"></canvas>
+        </div>
+
+        <!-- Display Toggles for FBD -->
+        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+          <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
+            <input type="checkbox" id="chk-components" checked>
+            <span>Show Orthogonal Components (F<sub>x</sub>, F<sub>y</sub>)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
+            <input type="checkbox" id="chk-angles" checked>
+            <span>Show Angles (&theta;)</span>
+          </label>
+        </div>
+
+        <!-- Equilibrium Equations Box -->
+        <div class="eq-box">
+          <div class="eq-row">
+            <span class="eq-label">&Sigma; F<sub>x</sub> = 0</span>
+            <span id="eq-sum-x" class="eq-val balanced">0.00 = 0.00 N</span>
+          </div>
+          <div class="eq-row">
+            <span class="eq-label">&Sigma; F<sub>y</sub> = 0</span>
+            <span id="eq-sum-y" class="eq-val balanced">0.00 = 0.00 N</span>
+          </div>
+        </div>
+
+        <!-- Statics Explanation Callout -->
+        <div id="fbd-explanation" class="fbd-explanation">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Analytical Summary Table -->
+        <div>
+          <div class="control-title" style="margin-bottom:0.4rem;">
+            <span>Polymer Member Data Table</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>L<sub>0</sub> (<span class="unit-disp">mm</span>)</th>
+                  <th>L (<span class="unit-disp">mm</span>)</th>
+                  <th>&Delta;L (<span class="unit-disp">mm</span>)</th>
+                  <th>Force (<span class="unit-force">N</span>)</th>
+                  <th>Stress (<span class="unit-stress">kPa</span>)</th>
+                  <th>Strain</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Theory & Derivation Modal (Jacobs Ch 3) -->
+  <div id="theory-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Mechanics of Deformable Bodies &bull; Jacobs Section 3.2</h3>
+        <button id="btn-close-theory" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          In <em>Introduction to Cell Mechanics and Mechanobiology</em> (Jacobs, Huang, &amp; Kwon), Figure 3.3 models a network of polymers as a pin-jointed truss system where individual polymer strands behave like elastic springs with stiffness \(k\).
+        </p>
+
+        <div class="theory-callout">
+          <strong>1. Isolation of Pin 4 (Bottom Node):</strong>
+          <p>
+            When a tensile load \(F\) is applied vertically downward, Pin 4 experiences three forces: the applied force \(-F \hat{j}\), and the tension forces from diagonal members 4-1 and 4-2. By symmetry:
+          </p>
+          <div class="math-block">
+            &Sigma; F<sub>y</sub> = 2 &times; T<sub>diag</sub> &times; cos(&theta;) - F = 0<br>
+            &rArr; T<sub>diag</sub> = F / (2 &times; cos(&theta;))  (Tension)
+          </div>
+        </div>
+
+        <div class="theory-callout">
+          <strong>2. Isolation of Pin 2 (Left Node) &amp; The Compression Paradox:</strong>
+          <p>
+            Students often ask: <em>Why is the middle horizontal polymer in compression even though the overall network is pulled in tension?</em>
+          </p>
+          <p>
+            At Pin 2, both the top spring (1-2) and the bottom spring (4-1) pull upward/downward and <strong>rightward toward the central axis</strong>:
+          </p>
+          <div class="math-block">
+            F<sub>pull, x</sub> = T<sub>1-2</sub> &times; sin(&theta;) + T<sub>4-1</sub> &times; sin(&theta;) &gt; 0 (directed to the right)<br><br>
+            For horizontal equilibrium (&Sigma; F<sub>x</sub> = 0):<br>
+            F<sub>spring 2-3</sub> must push to the left: F<sub>2-3</sub> = -2 &times; T<sub>diag</sub> &times; sin(&theta;) = -F &times; tan(&theta;)<br>
+            Because the member <strong>pushes outward against its pins</strong>, it is in <strong>COMPRESSION</strong>!
+          </div>
+        </div>
+
+        <div class="theory-callout">
+          <strong>3. Biological Significance:</strong>
+          <p>
+            This simple 5-polymer network illustrates how tension in the extracellular matrix or actin cortex can produce localized compressive loads on internal struts (e.g. microtubules or cross-linking actin filaments), fundamental to the <em>tensegrity architecture</em> of biological cells.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+// Bundled Polymer Network Simulation Engine
+/**
+ * physics.js - Structural Mechanics & Equilibrium Engine for Polymer Network
+ * Based on Jacobs, Huang, & Kwon - 'Introduction to Cell Mechanics and Mechanobiology' (Fig 3.3)
+ */
+
+class PolymerNetworkPhysics {
+  constructor() {
+    // Default geometry parameters (in mm or generic length units)
+    this.defaultHalfWidth = 60.0;  // W/2
+    this.defaultHalfHeight = 60.0; // H
+
+    // Default Cross-sectional area (mm^2) for stress computation
+    this.defaultArea = 2.0;
+
+    // Unit mode: 'macro' (N, mm, kPa) or 'micro' (nN, um, Pa)
+    this.unitMode = 'macro';
+
+    // Solver mode: 'nonlinear' (exact energy minimization) or 'linear' (small displacement)
+    this.solverMode = 'nonlinear';
+
+    // Deformation display multiplier
+    this.dispScale = 1.0;
+
+    this.initModel();
+  }
+
+  initModel() {
+    const W2 = this.defaultHalfWidth;
+    const H = this.defaultHalfHeight;
+    const diagL0 = Math.hypot(W2, H);
+    const horizL0 = 2 * W2;
+
+    // 4 Nodes: 0: Top, 1: Left, 2: Right, 3: Bottom
+    // Coordinates: (X, Y)
+    this.nodes = [
+      { id: 0, name: 'Node 1 (Top)', label: '1 (Top)', x0: 0, y0: H, fixedX: true, fixedY: true, fx: 0, fy: 0 },
+      { id: 1, name: 'Node 2 (Left)', label: '2 (Left)', x0: -W2, y0: 0, fixedX: false, fixedY: false, fx: 0, fy: 0 },
+      { id: 2, name: 'Node 3 (Right)', label: '3 (Right)', x0: W2, y0: 0, fixedX: false, fixedY: false, fx: 0, fy: 0 },
+      { id: 3, name: 'Node 4 (Bottom)', label: '4 (Bottom)', x0: 0, y0: -H, fixedX: false, fixedY: false, fx: 0, fy: -25.0 } // Default downward load: -25 N
+    ];
+
+    // 5 Spring Members:
+    // 0: 0-1 (Top-Left)
+    // 1: 0-2 (Top-Right)
+    // 2: 3-1 (Bottom-Left)
+    // 3: 3-2 (Bottom-Right)
+    // 4: 1-2 (Middle Horizontal)
+    this.members = [
+      { id: 0, name: 'Spring 1-2 (Top-Left)', shortName: '1-2', nodeA: 0, nodeB: 1, k: 50.0, L0: diagL0, area: this.defaultArea },
+      { id: 1, name: 'Spring 1-3 (Top-Right)', shortName: '1-3', nodeA: 0, nodeB: 2, k: 50.0, L0: diagL0, area: this.defaultArea },
+      { id: 2, name: 'Spring 4-1 (Bot-Left)', shortName: '4-1', nodeA: 3, nodeB: 1, k: 50.0, L0: diagL0, area: this.defaultArea },
+      { id: 3, name: 'Spring 4-2 (Bot-Right)', shortName: '4-2', nodeA: 3, nodeB: 2, k: 50.0, L0: diagL0, area: this.defaultArea },
+      { id: 4, name: 'Spring 2-3 (Middle)', shortName: '2-3', nodeA: 1, nodeB: 2, k: 40.0, L0: horizL0, area: this.defaultArea }
+    ];
+
+    // Current state arrays
+    this.displacements = [ {u: 0, v: 0}, {u: 0, v: 0}, {u: 0, v: 0}, {u: 0, v: 0} ];
+    this.reactions = [ {rx: 0, ry: 0}, {rx: 0, ry: 0}, {rx: 0, ry: 0}, {rx: 0, ry: 0} ];
+    this.memberResults = [];
+
+    this.solve();
+  }
+
+  setUnitMode(mode) {
+    this.unitMode = mode;
+  }
+
+  getUnitLabels() {
+    if (this.unitMode === 'micro') {
+      return { force: 'nN', length: 'μm', disp: 'μm', stiffness: 'nN/μm', stress: 'Pa', energy: 'fJ' };
+    }
+    return { force: 'N', length: 'mm', disp: 'mm', stiffness: 'N/mm', stress: 'kPa', energy: 'mJ' };
+  }
+
+  setAppliedLoad(nodeId, fx, fy) {
+    if (this.nodes[nodeId]) {
+      this.nodes[nodeId].fx = fx;
+      this.nodes[nodeId].fy = fy;
+      this.solve();
+    }
+  }
+
+  setStiffnesses(kOuter, kMiddle) {
+    for (let i = 0; i < 4; i++) {
+      this.members[i].k = kOuter;
+    }
+    this.members[4].k = kMiddle;
+    this.solve();
+  }
+
+  setIndividualStiffness(memberId, k) {
+    if (this.members[memberId]) {
+      this.members[memberId].k = k;
+      this.solve();
+    }
+  }
+
+  setNodeFixation(nodeId, fixedX, fixedY) {
+    if (this.nodes[nodeId]) {
+      this.nodes[nodeId].fixedX = fixedX;
+      this.nodes[nodeId].fixedY = fixedY;
+      this.solve();
+    }
+  }
+
+  setSolverMode(mode) {
+    this.solverMode = mode;
+    this.solve();
+  }
+
+  /**
+   * Main Solver:
+   * Chooses between Nonlinear Newton-Raphson or Linear Small-Displacement
+   */
+  solve() {
+    if (this.solverMode === 'linear') {
+      this.solveLinear();
+    } else {
+      this.solveNonlinear();
+    }
+    this.calculateMemberForcesAndReactions();
+  }
+
+  /**
+   * Linear Small-Displacement Matrix Analysis
+   * K0 * u = F_ext
+   */
+  solveLinear() {
+    const nNodes = this.nodes.length;
+    const nDof = nNodes * 2;
+    const K = Array.from({ length: nDof }, () => new Float64Array(nDof));
+    const F = new Float64Array(nDof);
+
+    // Populate external loads
+    for (let i = 0; i < nNodes; i++) {
+      F[2 * i] = this.nodes[i].fx;
+      F[2 * i + 1] = this.nodes[i].fy;
+    }
+
+    // Assemble global linear stiffness matrix at initial coordinates
+    for (const m of this.members) {
+      const na = m.nodeA;
+      const nb = m.nodeB;
+      const dx = this.nodes[nb].x0 - this.nodes[na].x0;
+      const dy = this.nodes[nb].y0 - this.nodes[na].y0;
+      const L = Math.hypot(dx, dy);
+      const c = dx / L;
+      const s = dy / L;
+      const k = m.k;
+
+      const ke = [
+        [ c * c * k,  c * s * k, -c * c * k, -c * s * k ],
+        [ c * s * k,  s * s * k, -c * s * k, -s * s * k ],
+        [-c * c * k, -c * s * k,  c * c * k,  c * s * k ],
+        [-c * s * k, -s * s * k,  c * s * k,  s * s * k ]
+      ];
+
+      const dofs = [ 2 * na, 2 * na + 1, 2 * nb, 2 * nb + 1 ];
+      for (let r = 0; r < 4; r++) {
+        for (let cCol = 0; cCol < 4; cCol++) {
+          K[dofs[r]][dofs[cCol]] += ke[r][cCol];
+        }
+      }
+    }
+
+    // Apply boundary conditions via penalty or row/col zeroing
+    const isFixed = new Uint8Array(nDof);
+    for (let i = 0; i < nNodes; i++) {
+      if (this.nodes[i].fixedX) isFixed[2 * i] = 1;
+      if (this.nodes[i].fixedY) isFixed[2 * i + 1] = 1;
+    }
+
+    // Solve reduced linear system
+    const freeDofs = [];
+    for (let d = 0; d < nDof; d++) {
+      if (!isFixed[d]) freeDofs.push(d);
+    }
+
+    const nFree = freeDofs.length;
+    const K_red = Array.from({ length: nFree }, () => new Float64Array(nFree));
+    const F_red = new Float64Array(nFree);
+
+    for (let i = 0; i < nFree; i++) {
+      F_red[i] = F[freeDofs[i]];
+      for (let j = 0; j < nFree; j++) {
+        K_red[i][j] = K[freeDofs[i]][freeDofs[j]];
+      }
+    }
+
+    const u_red = this.solveLinearSystem(K_red, F_red);
+
+    for (let i = 0; i < nNodes; i++) {
+      this.displacements[i].u = 0;
+      this.displacements[i].v = 0;
+    }
+    for (let i = 0; i < nFree; i++) {
+      const dof = freeDofs[i];
+      const node = Math.floor(dof / 2);
+      if (dof % 2 === 0) {
+        this.displacements[node].u = u_red[i];
+      } else {
+        this.displacements[node].v = u_red[i];
+      }
+    }
+  }
+
+  /**
+   * Exact Non-Linear Equilibrium via Newton-Raphson
+   * Minimizes potential energy Pi(x) = sum( 0.5 * k * (L - L0)^2 ) - F_ext dot u
+   */
+  solveNonlinear() {
+    const nNodes = this.nodes.length;
+    const nDof = nNodes * 2;
+
+    const isFixed = new Uint8Array(nDof);
+    for (let i = 0; i < nNodes; i++) {
+      if (this.nodes[i].fixedX) isFixed[2 * i] = 1;
+      if (this.nodes[i].fixedY) isFixed[2 * i + 1] = 1;
+    }
+
+    const freeDofs = [];
+    for (let d = 0; d < nDof; d++) {
+      if (!isFixed[d]) freeDofs.push(d);
+    }
+    const nFree = freeDofs.length;
+
+    // Start from current displacements or 0
+    let u = new Float64Array(nDof);
+    for (let i = 0; i < nNodes; i++) {
+      u[2 * i] = this.displacements[i].u || 0;
+      u[2 * i + 1] = this.displacements[i].v || 0;
+    }
+
+    const maxIter = 40;
+    const tol = 1e-9;
+
+    for (let iter = 0; iter < maxIter; iter++) {
+      // Compute internal forces and tangent stiffness
+      const R = new Float64Array(nDof); // Residual = F_ext - F_int
+      const KT = Array.from({ length: nDof }, () => new Float64Array(nDof));
+
+      // External load contribution
+      for (let i = 0; i < nNodes; i++) {
+        R[2 * i] += this.nodes[i].fx;
+        R[2 * i + 1] += this.nodes[i].fy;
+      }
+
+      // Member contributions
+      for (const m of this.members) {
+        const na = m.nodeA;
+        const nb = m.nodeB;
+        const xa = this.nodes[na].x0 + u[2 * na];
+        const ya = this.nodes[na].y0 + u[2 * na + 1];
+        const xb = this.nodes[nb].x0 + u[2 * nb];
+        const yb = this.nodes[nb].y0 + u[2 * nb + 1];
+
+        const dx = xb - xa;
+        const dy = yb - ya;
+        const L = Math.hypot(dx, dy) || 1e-9;
+        const eX = dx / L;
+        const eY = dy / L;
+
+        const deltaL = L - m.L0;
+        const T = m.k * deltaL; // Positive = tension
+
+        // Internal force on node a from spring (pulls towards b if T > 0)
+        // Residual = F_ext - F_int:
+        // F_int pulling on a is +T * e. Resisting external load:
+        // Net force on a = F_ext_a + T*e. We want Net Force = 0.
+        // So R_a = F_ext_a + T*e, R_b = F_ext_b - T*e.
+        R[2 * na] += T * eX;
+        R[2 * na + 1] += T * eY;
+        R[2 * nb] -= T * eX;
+        R[2 * nb + 1] -= T * eY;
+
+        // Tangent stiffness: d(F_int)/du
+        // For node a: F_int = - T * e (force applied by node to spring is opposite)
+        const kConst = m.k;
+        const geom = T / L;
+
+        const kxx = kConst * (eX * eX) + geom * (1 - eX * eX);
+        const kyy = kConst * (eY * eY) + geom * (1 - eY * eY);
+        const kxy = (kConst - geom) * (eX * eY);
+
+        const dofs = [ 2 * na, 2 * na + 1, 2 * nb, 2 * nb + 1 ];
+        const ke = [
+          [  kxx,  kxy, -kxx, -kxy ],
+          [  kxy,  kyy, -kxy, -kyy ],
+          [ -kxx, -kxy,  kxx,  kxy ],
+          [ -kxy, -kyy,  kxy,  kyy ]
+        ];
+
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            KT[dofs[r]][dofs[c]] += ke[r][c];
+          }
+        }
+      }
+
+      // Check residual on free DOFs
+      let resNorm = 0;
+      for (let i = 0; i < nFree; i++) {
+        const d = freeDofs[i];
+        resNorm = Math.max(resNorm, Math.abs(R[d]));
+      }
+
+      if (resNorm < tol) {
+        break;
+      }
+
+      // Extract free submatrix
+      const K_free = Array.from({ length: nFree }, () => new Float64Array(nFree));
+      const R_free = new Float64Array(nFree);
+      for (let i = 0; i < nFree; i++) {
+        // Residual in Newton equation: K * du = R (since R is the out-of-balance force)
+        R_free[i] = -R[freeDofs[i]];
+        for (let j = 0; j < nFree; j++) {
+          K_free[i][j] = KT[freeDofs[i]][freeDofs[j]];
+        }
+      }
+
+      // Regularize
+      for (let i = 0; i < nFree; i++) {
+        K_free[i][i] += 1e-12;
+      }
+
+      const delta_u = this.solveLinearSystem(K_free, R_free);
+
+      // Apply step
+      for (let i = 0; i < nFree; i++) {
+        u[freeDofs[i]] -= delta_u[i];
+      }
+    }
+
+    // Save displacements
+    for (let i = 0; i < nNodes; i++) {
+      this.displacements[i].u = isFixed[2 * i] ? 0 : u[2 * i];
+      this.displacements[i].v = isFixed[2 * i + 1] ? 0 : u[2 * i + 1];
+    }
+  }
+
+  /**
+   * Gaussian elimination with partial pivoting for small square matrix
+   */
+  solveLinearSystem(A, b) {
+    const n = b.length;
+    if (n === 0) return new Float64Array(0);
+
+    const M = Array.from({ length: n }, (_, i) => {
+      const row = new Float64Array(n + 1);
+      row.set(A[i]);
+      row[n] = b[i];
+      return row;
+    });
+
+    for (let p = 0; p < n; p++) {
+      let maxRow = p;
+      let maxVal = Math.abs(M[p][p]);
+      for (let r = p + 1; r < n; r++) {
+        if (Math.abs(M[r][p]) > maxVal) {
+          maxVal = Math.abs(M[r][p]);
+          maxRow = r;
+        }
+      }
+      if (maxRow !== p) {
+        const temp = M[p];
+        M[p] = M[maxRow];
+        M[maxRow] = temp;
+      }
+
+      const pivot = M[p][p];
+      if (Math.abs(pivot) < 1e-13) {
+        continue;
+      }
+
+      for (let r = p + 1; r < n; r++) {
+        const factor = M[r][p] / pivot;
+        for (let c = p; c <= n; c++) {
+          M[r][c] -= factor * M[p][c];
+        }
+      }
+    }
+
+    const x = new Float64Array(n);
+    for (let r = n - 1; r >= 0; r--) {
+      let sum = M[r][n];
+      for (let c = r + 1; c < n; c++) {
+        sum -= M[r][c] * x[c];
+      }
+      if (Math.abs(M[r][r]) > 1e-13) {
+        x[r] = sum / M[r][r];
+      } else {
+        x[r] = 0;
+      }
+    }
+    return x;
+  }
+
+  /**
+   * Post-processing: member forces, reactions, stresses, strains, total energy
+   */
+  calculateMemberForcesAndReactions() {
+    this.memberResults = [];
+    let totalStrainEnergy = 0;
+    let maxStress = 0;
+    let criticalMember = null;
+
+    // Reset reactions
+    for (let i = 0; i < this.nodes.length; i++) {
+      this.reactions[i] = { rx: 0, ry: 0 };
+    }
+
+    for (const m of this.members) {
+      const na = m.nodeA;
+      const nb = m.nodeB;
+
+      const xa = this.nodes[na].x0 + this.displacements[na].u;
+      const ya = this.nodes[na].y0 + this.displacements[na].v;
+      const xb = this.nodes[nb].x0 + this.displacements[nb].u;
+      const yb = this.nodes[nb].y0 + this.displacements[nb].v;
+
+      const dx = xb - xa;
+      const dy = yb - ya;
+      const currentLength = Math.hypot(dx, dy);
+      const deltaL = currentLength - m.L0;
+      const force = m.k * deltaL; // Positive = tension, negative = compression
+      const strain = deltaL / m.L0;
+      const stress = force / m.area;
+      const energy = 0.5 * m.k * deltaL * deltaL;
+
+      totalStrainEnergy += energy;
+
+      if (Math.abs(stress) > maxStress) {
+        maxStress = Math.abs(stress);
+        criticalMember = m.name;
+      }
+
+      // Unit vector from A to B
+      const ux = dx / currentLength;
+      const uy = dy / currentLength;
+
+      // Force on node A: F = force * u (pulls toward B if force > 0)
+      // Force on node B: F = -force * u (pulls toward A if force > 0)
+      const forceOnA = { fx: force * ux, fy: force * uy };
+      const forceOnB = { fx: -force * ux, fy: -force * uy };
+
+      const state = Math.abs(force) < 1e-4 ? 'Neutral' : (force > 0 ? 'Tension' : 'Compression');
+
+      this.memberResults.push({
+        id: m.id,
+        name: m.name,
+        shortName: m.shortName,
+        nodeA: na,
+        nodeB: nb,
+        k: m.k,
+        L0: m.L0,
+        L: currentLength,
+        deltaL: deltaL,
+        force: force,
+        strain: strain,
+        stress: stress,
+        energy: energy,
+        state: state,
+        ux: ux,
+        uy: uy,
+        forceOnA: forceOnA,
+        forceOnB: forceOnB
+      });
+    }
+
+    // Reactions at each node to satisfy sum(F) = 0:
+    // Reaction vector R provides static balance on fixed DOFs
+    for (let i = 0; i < this.nodes.length; i++) {
+      let sumSpringsX = 0;
+      let sumSpringsY = 0;
+
+      for (const res of this.memberResults) {
+        if (res.nodeA === i) {
+          sumSpringsX += res.forceOnA.fx;
+          sumSpringsY += res.forceOnA.fy;
+        } else if (res.nodeB === i) {
+          sumSpringsX += res.forceOnB.fx;
+          sumSpringsY += res.forceOnB.fy;
+        }
+      }
+
+      const extX = this.nodes[i].fx;
+      const extY = this.nodes[i].fy;
+
+      // Reaction is the force needed from external constraint to balance sum
+      this.reactions[i] = {
+        rx: this.nodes[i].fixedX ? -(extX + sumSpringsX) : 0,
+        ry: this.nodes[i].fixedY ? -(extY + sumSpringsY) : 0,
+        springNetX: sumSpringsX,
+        springNetY: sumSpringsY,
+        totalNetX: extX + sumSpringsX + (this.nodes[i].fixedX ? -(extX + sumSpringsX) : 0),
+        totalNetY: extY + sumSpringsY + (this.nodes[i].fixedY ? -(extY + sumSpringsY) : 0)
+      };
+    }
+
+    // Summary statistics
+    const botDisp = Math.hypot(this.displacements[3].u, this.displacements[3].v);
+    this.status = {
+      maxStress: maxStress,
+      criticalMember: criticalMember || 'None',
+      botDisplacement: botDisp,
+      strainEnergy: totalStrainEnergy,
+      isEquilibrium: true
+    };
+  }
+
+  /**
+   * Returns current deformed coordinate of a node (taking display scale into account)
+   */
+  getNodeCurrentPos(nodeId, scale = 1.0) {
+    const node = this.nodes[nodeId];
+    const disp = this.displacements[nodeId];
+    return {
+      x: node.x0 + disp.u * scale,
+      y: node.y0 + disp.v * scale
+    };
+  }
+
+  /**
+   * Returns analytical prediction according to Jacobs Section 3.2:
+   * For symmetric downward load F applied to bottom pin:
+   * T_bot = F / (2 * cos(theta))
+   * T_top = F / (2 * cos(theta))
+   * F_horiz = - F * tan(theta) (Compression)
+   * Ceiling reaction R_y = F
+   */
+  getAnalyticalComparison() {
+    const F = Math.abs(this.nodes[3].fy);
+    const W2 = this.defaultHalfWidth;
+    const H = this.defaultHalfHeight;
+    const theta0 = Math.atan2(W2, H); // Angle with vertical axis
+    const cosTheta = Math.cos(theta0);
+    const tanTheta = Math.tan(theta0);
+
+    const T_diag_analytical = F > 0 ? F / (2 * cosTheta) : 0;
+    const C_horiz_analytical = F > 0 ? -F * tanTheta : 0;
+    const Ry_analytical = F;
+
+    return {
+      theta0Deg: (theta0 * 180 / Math.PI).toFixed(1),
+      T_diag: T_diag_analytical,
+      C_horiz: C_horiz_analytical,
+      Ry: Ry_analytical
+    };
+  }
+}
+
+
+/**
+ * renderer.js - Procedural Canvas Renderer for Polymer Network Simulation
+ * Renders helical spring coils, shaded pin joints, support fixtures, load vectors,
+ * and undeformed ghost skeleton with tension/compression color coding.
+ */
+
+class NetworkRenderer {
+  constructor(canvas, physics, options = {}) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.physics = physics;
+
+    this.options = Object.assign({
+      showGhost: true,
+      showLabels: true,
+      showVectors: true,
+      showDeformedLength: false,
+      zoom: 1.0,
+      dispScale: 1.0,
+      selectedNodeId: null,
+      hoveredNodeId: null,
+      hoveredMemberId: null
+    }, options);
+
+    // Interaction state
+    this.isDragging = false;
+    this.draggedNodeId = null;
+
+    this.initEvents();
+    this.resize();
+  }
+
+  resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    this.width = rect.width;
+    this.height = rect.height;
+
+    this.canvas.width = this.width * dpr;
+    this.canvas.height = this.height * dpr;
+    this.ctx.scale(dpr, dpr);
+    this.render();
+  }
+
+  initEvents() {
+    window.addEventListener('resize', () => this.resize());
+
+    this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
+    this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
+    window.addEventListener('mouseup', () => this.onMouseUp());
+    this.canvas.addEventListener('mouseleave', () => {
+      this.options.hoveredNodeId = null;
+      this.options.hoveredMemberId = null;
+      this.render();
+    });
+
+    // Touch support for mobile / tablets
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        this.canvas.dispatchEvent(mouseEvent);
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        this.canvas.dispatchEvent(mouseEvent);
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchend', () => {
+      window.dispatchEvent(new MouseEvent('mouseup'));
+    });
+  }
+
+  worldToScreen(wx, wy) {
+    // Model origin (0, 0) is centered, +X right, +Y up
+    const cx = this.width / 2;
+    const cy = this.height / 2 - 10; // slightly higher to make room for downward load
+    const scale = (Math.min(this.width, this.height) / 230) * this.options.zoom;
+    return {
+      x: cx + wx * scale,
+      y: cy - wy * scale,
+      scale: scale
+    };
+  }
+
+  screenToWorld(sx, sy) {
+    const cx = this.width / 2;
+    const cy = this.height / 2 - 10;
+    const scale = (Math.min(this.width, this.height) / 230) * this.options.zoom;
+    return {
+      x: (sx - cx) / scale,
+      y: -(sy - cy) / scale
+    };
+  }
+
+  getMousePos(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  findNodeAt(sx, sy, hitRadius = 22) {
+    for (let i = 0; i < this.physics.nodes.length; i++) {
+      const pos = this.physics.getNodeCurrentPos(i, this.options.dispScale);
+      const sp = this.worldToScreen(pos.x, pos.y);
+      if (Math.hypot(sp.x - sx, sp.y - sy) <= hitRadius) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  onMouseDown(e) {
+    const m = this.getMousePos(e);
+    const nodeId = this.findNodeAt(m.x, m.y);
+    if (nodeId !== null) {
+      this.isDragging = true;
+      this.draggedNodeId = nodeId;
+      this.options.selectedNodeId = nodeId;
+      if (this.onNodeSelectCallback) {
+        this.onNodeSelectCallback(nodeId);
+      }
+      this.render();
+    }
+  }
+
+  onMouseMove(e) {
+    const m = this.getMousePos(e);
+
+    if (this.isDragging && this.draggedNodeId !== null) {
+      const w = this.screenToWorld(m.x, m.y);
+      const node = this.physics.nodes[this.draggedNodeId];
+
+      if (!node.fixedX || !node.fixedY) {
+        // Dragging acts as interactive load pull
+        // Calculate force proportional to displacement from origin or set displacement
+        const dx = w.x - node.x0;
+        const dy = w.y - node.y0;
+
+        // Apply dynamic force pulling toward mouse
+        const kPull = 0.8;
+        const fx = node.fixedX ? 0 : (dx - this.physics.displacements[this.draggedNodeId].u) * kPull;
+        const fy = node.fixedY ? 0 : (dy - this.physics.displacements[this.draggedNodeId].v) * kPull;
+
+        this.physics.nodes[this.draggedNodeId].fx += fx;
+        this.physics.nodes[this.draggedNodeId].fy += fy;
+        this.physics.solve();
+
+        if (this.onStateChangeCallback) {
+          this.onStateChangeCallback();
+        }
+      }
+      this.render();
+      return;
+    }
+
+    const hovered = this.findNodeAt(m.x, m.y);
+    if (hovered !== this.options.hoveredNodeId) {
+      this.options.hoveredNodeId = hovered;
+      this.canvas.style.cursor = hovered !== null ? 'pointer' : 'default';
+      this.render();
+    }
+  }
+
+  onMouseUp() {
+    if (this.isDragging) {
+      this.isDragging = false;
+      this.draggedNodeId = null;
+      this.render();
+    }
+  }
+
+  /**
+   * Main Render Loop
+   */
+  render() {
+    const ctx = this.ctx;
+    const w = this.width;
+    const h = this.height;
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Subtle background grid
+    this.drawBackgroundGrid();
+
+    // 1. Draw Ceiling Support fixture (Node 1)
+    this.drawCeilingSupport();
+
+    // 2. Draw Ghost (Undeformed) configuration if enabled
+    if (this.options.showGhost) {
+      this.drawGhostNetwork();
+    }
+
+    // 3. Draw Deformed Springs with Helical Coils and Tension/Compression colors
+    this.drawSprings();
+
+    // 4. Draw Pins / Spherical Joints
+    this.drawNodes();
+
+    // 5. Draw External Forces & Reactions
+    if (this.options.showVectors) {
+      this.drawForceVectors();
+    }
+
+    // 6. Draw Tooltips or Hover Details
+    this.drawOverlayInfo();
+  }
+
+  drawBackgroundGrid() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(226, 232, 240, 0.4)';
+    ctx.lineWidth = 1;
+
+    const step = 40;
+    const cx = this.width / 2;
+    const cy = this.height / 2 - 10;
+
+    ctx.beginPath();
+    for (let x = cx % step; x < this.width; x += step) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, this.height);
+    }
+    for (let y = cy % step; y < this.height; y += step) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(this.width, y);
+    }
+    ctx.stroke();
+
+    // Center crosshairs
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.7)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx, 0);
+    ctx.lineTo(cx, this.height);
+    ctx.moveTo(0, cy);
+    ctx.lineTo(this.width, cy);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawCeilingSupport() {
+    const ctx = this.ctx;
+    const topNode = this.physics.nodes[0];
+    const sp = this.worldToScreen(topNode.x0, topNode.y0);
+
+    ctx.save();
+    const beamHalfWidth = 65;
+    const beamY = sp.y - 14;
+
+    // Horizontal ceiling bar
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(sp.x - beamHalfWidth, beamY - 4, beamHalfWidth * 2, 4);
+
+    // Cross-hatch diagonal lines for rigid ground/ceiling
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    const hatchStep = 10;
+    for (let x = sp.x - beamHalfWidth; x <= sp.x + beamHalfWidth; x += hatchStep) {
+      ctx.moveTo(x, beamY - 4);
+      ctx.lineTo(x + 8, beamY - 14);
+    }
+    ctx.stroke();
+
+    // Small vertical hanger connecting bar to top pin
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(sp.x, beamY);
+    ctx.lineTo(sp.x, sp.y);
+    ctx.stroke();
+
+    // Small hinge bracket
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.arc(sp.x, beamY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  drawGhostNetwork() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+
+    // Ghost member lines
+    for (const m of this.physics.members) {
+      const na = this.physics.nodes[m.nodeA];
+      const nb = this.physics.nodes[m.nodeB];
+      const p1 = this.worldToScreen(na.x0, na.y0);
+      const p2 = this.worldToScreen(nb.x0, nb.y0);
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+
+    // Ghost node rings
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.lineWidth = 1.5;
+
+    for (const n of this.physics.nodes) {
+      const sp = this.worldToScreen(n.x0, n.y0);
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Draws procedural spring coil with helical 3D look
+   */
+  drawSprings() {
+    const ctx = this.ctx;
+    const maxF = Math.max(...this.physics.memberResults.map(r => Math.abs(r.force)), 1.0);
+
+    for (const res of this.physics.memberResults) {
+      const na = this.physics.nodes[res.nodeA];
+      const nb = this.physics.nodes[res.nodeB];
+
+      const p1 = this.worldToScreen(
+        na.x0 + this.physics.displacements[res.nodeA].u * this.options.dispScale,
+        na.y0 + this.physics.displacements[res.nodeA].v * this.options.dispScale
+      );
+      const p2 = this.worldToScreen(
+        nb.x0 + this.physics.displacements[res.nodeB].u * this.options.dispScale,
+        nb.y0 + this.physics.displacements[res.nodeB].v * this.options.dispScale
+      );
+
+      // Color mapping:
+      // Tension: Blue shades (#2563eb / #0284c7)
+      // Compression: Crimson/Orange (#dc2626 / #ea580c)
+      // Neutral: Gray (#64748b)
+      let springColor = '#64748b';
+      let glowColor = 'rgba(100, 116, 139, 0.2)';
+      const normalizedForce = Math.min(Math.abs(res.force) / maxF, 1.0);
+      const strokeW = 3.0 + normalizedForce * 2.2;
+
+      if (res.state === 'Tension') {
+        springColor = res.force > maxF * 0.6 ? '#1d4ed8' : '#2563eb';
+        glowColor = 'rgba(37, 99, 235, 0.3)';
+      } else if (res.state === 'Compression') {
+        springColor = Math.abs(res.force) > maxF * 0.6 ? '#dc2626' : '#ea580c';
+        glowColor = 'rgba(234, 88, 12, 0.3)';
+      }
+
+      ctx.save();
+      // Glow under stroke
+      ctx.strokeStyle = glowColor;
+      ctx.lineWidth = strokeW + 4;
+      this.drawSpringPath(ctx, p1.x, p1.y, p2.x, p2.y, 8, 12);
+      ctx.stroke();
+
+      // Main spring body
+      ctx.strokeStyle = springColor;
+      ctx.lineWidth = strokeW;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      this.drawSpringPath(ctx, p1.x, p1.y, p2.x, p2.y, 8, 12);
+      ctx.stroke();
+
+      // Highlight inner core for 3D helical effect
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.lineWidth = Math.max(1, strokeW * 0.3);
+      this.drawSpringPath(ctx, p1.x, p1.y, p2.x, p2.y, 8, 11, 0.8);
+      ctx.stroke();
+
+      // Draw force tag near middle of spring if enabled
+      if (this.options.showDeformedLength || Math.abs(res.force) > 0.05) {
+        this.drawSpringBadge(p1, p2, res);
+      }
+
+      ctx.restore();
+    }
+  }
+
+  /**
+   * Procedural helical coil path generator
+   */
+  drawSpringPath(ctx, x1, y1, x2, y2, coils = 8, amplitude = 12, ampScale = 1.0) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.hypot(dx, dy);
+    const ux = dx / dist;
+    const uy = dy / dist;
+    const perpX = -uy;
+    const perpY = ux;
+
+    const leadLen = 18; // straight lead connecting pin
+    const activeLen = Math.max(10, dist - 2 * leadLen);
+    const effAmp = amplitude * ampScale;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 + ux * leadLen, y1 + uy * leadLen);
+
+    const stepsPerCoil = 4;
+    const totalSteps = coils * stepsPerCoil;
+
+    for (let s = 1; s <= totalSteps; s++) {
+      const frac = s / totalSteps;
+      const tDist = leadLen + activeLen * frac;
+      const midX = x1 + ux * tDist;
+      const midY = y1 + uy * tDist;
+
+      // Sinusoidal wave perpendicular to axis
+      const phase = frac * coils * Math.PI * 2;
+      const offset = Math.sin(phase) * effAmp;
+
+      ctx.lineTo(midX + perpX * offset, midY + perpY * offset);
+    }
+
+    ctx.lineTo(x2 - ux * leadLen, y2 - uy * leadLen);
+    ctx.lineTo(x2, y2);
+  }
+
+  drawSpringBadge(p1, p2, res) {
+    const ctx = this.ctx;
+    const midX = (p1.x + p2.x) / 2;
+    const midY = (p1.y + p2.y) / 2;
+    const unitLabels = this.physics.getUnitLabels();
+
+    const sign = res.state === 'Compression' ? 'C: ' : (res.state === 'Tension' ? 'T: ' : '');
+    const text = `${sign}${Math.abs(res.force).toFixed(1)} ${unitLabels.force}`;
+
+    ctx.save();
+    ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+    const textW = ctx.measureText(text).width;
+    const pad = 5;
+
+    ctx.fillStyle = res.state === 'Tension' ? 'rgba(239, 246, 255, 0.92)' :
+                    (res.state === 'Compression' ? 'rgba(254, 242, 242, 0.92)' : 'rgba(241, 245, 249, 0.92)');
+    ctx.strokeStyle = res.state === 'Tension' ? '#3b82f6' :
+                     (res.state === 'Compression' ? '#ef4444' : '#94a3b8');
+    ctx.lineWidth = 1;
+
+    // Small rounded rect
+    const bx = midX - textW / 2 - pad;
+    const by = midY - 9;
+    const bw = textW + pad * 2;
+    const bh = 18;
+
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = res.state === 'Tension' ? '#1e40af' :
+                    (res.state === 'Compression' ? '#b91c1c' : '#475569');
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, midX, midY);
+
+    ctx.restore();
+  }
+
+  drawNodes() {
+    const ctx = this.ctx;
+
+    for (let i = 0; i < this.physics.nodes.length; i++) {
+      const node = this.physics.nodes[i];
+      const pos = this.physics.getNodeCurrentPos(i, this.options.dispScale);
+      const sp = this.worldToScreen(pos.x, pos.y);
+
+      const isSelected = this.options.selectedNodeId === i;
+      const isHovered = this.options.hoveredNodeId === i;
+      const radius = isSelected ? 15 : (isHovered ? 14 : 13);
+
+      ctx.save();
+
+      // Selection halo
+      if (isSelected) {
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 3.5;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, radius + 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Shaded metallic sphere
+      const grad = ctx.createRadialGradient(
+        sp.x - radius * 0.35, sp.y - radius * 0.35, radius * 0.1,
+        sp.x, sp.y, radius
+      );
+
+      if (node.fixedX && node.fixedY) {
+        // Pinned node (Top) - deep slate/steel blue
+        grad.addColorStop(0, '#bae6fd');
+        grad.addColorStop(0.3, '#38bdf8');
+        grad.addColorStop(0.85, '#0284c7');
+        grad.addColorStop(1, '#0369a1');
+      } else if (i === 3 && Math.abs(node.fy) > 0.1) {
+        // Loaded node (Bottom) - vibrant cyan/amber
+        grad.addColorStop(0, '#fed7aa');
+        grad.addColorStop(0.3, '#f97316');
+        grad.addColorStop(0.85, '#c2410c');
+        grad.addColorStop(1, '#7c2d12');
+      } else {
+        // Free nodes (Left, Right) - clean azure sphere
+        grad.addColorStop(0, '#e0f2fe');
+        grad.addColorStop(0.3, '#38bdf8');
+        grad.addColorStop(0.85, '#0284c7');
+        grad.addColorStop(1, '#075985');
+      }
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Subtle edge ring
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.4)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Node label
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${i + 1}`, sp.x, sp.y);
+
+      // Name caption
+      if (this.options.showLabels) {
+        ctx.font = '500 11px system-ui, sans-serif';
+        ctx.fillStyle = '#334155';
+        let labelOffset = 22;
+        if (i === 0) labelOffset = -22; // Top
+        if (i === 1) { // Left
+          ctx.textAlign = 'right';
+          ctx.fillText('Pin 2 (Left)', sp.x - 18, sp.y);
+        } else if (i === 2) { // Right
+          ctx.textAlign = 'left';
+          ctx.fillText('Pin 3 (Right)', sp.x + 18, sp.y);
+        } else if (i === 3) { // Bottom
+          ctx.textAlign = 'center';
+          ctx.fillText('Pin 4 (Bottom)', sp.x, sp.y + labelOffset);
+        } else if (i === 0) {
+          ctx.textAlign = 'center';
+          ctx.fillText('Pin 1 (Support)', sp.x, sp.y + labelOffset);
+        }
+      }
+
+      ctx.restore();
+    }
+  }
+
+  drawForceVectors() {
+    const ctx = this.ctx;
+    const unitLabels = this.physics.getUnitLabels();
+
+    // 1. External load vector at Node 4 (or any loaded node)
+    for (let i = 0; i < this.physics.nodes.length; i++) {
+      const node = this.physics.nodes[i];
+      const fx = node.fx;
+      const fy = node.fy;
+      const mag = Math.hypot(fx, fy);
+
+      if (mag > 0.1) {
+        const pos = this.physics.getNodeCurrentPos(i, this.options.dispScale);
+        const sp = this.worldToScreen(pos.x, pos.y);
+
+        // Vector direction on screen: +fx is +X screen, +fy is -Y screen
+        const arrowLen = Math.min(80, Math.max(35, mag * 1.6));
+        const dirX = fx / mag;
+        const dirY = -fy / mag;
+
+        const startX = sp.x;
+        const startY = sp.y;
+        const endX = startX + dirX * arrowLen;
+        const endY = startY + dirY * arrowLen;
+
+        this.drawVectorArrow(
+          ctx, startX, startY, endX, endY,
+          '#d97706', 3.5,
+          `F_ext = ${mag.toFixed(1)} ${unitLabels.force}`
+        );
+      }
+    }
+
+    // 2. Reaction vector at Node 1 (Ceiling reaction)
+    for (let i = 0; i < this.physics.nodes.length; i++) {
+      const node = this.physics.nodes[i];
+      if (node.fixedX || node.fixedY) {
+        const rx = this.physics.reactions[i].rx;
+        const ry = this.physics.reactions[i].ry;
+        const magR = Math.hypot(rx, ry);
+
+        if (magR > 0.1) {
+          const pos = this.physics.getNodeCurrentPos(i, this.options.dispScale);
+          const sp = this.worldToScreen(pos.x, pos.y);
+
+          const arrowLen = Math.min(70, Math.max(30, magR * 1.4));
+          const dirX = rx / magR;
+          const dirY = -ry / magR;
+
+          // Reaction points upward on ceiling
+          const endX = sp.x;
+          const endY = sp.y;
+          const startX = endX - dirX * arrowLen;
+          const startY = endY - dirY * arrowLen;
+
+          this.drawVectorArrow(
+            ctx, startX, startY, endX, endY,
+            '#0284c7', 3.0,
+            `R = ${magR.toFixed(1)} ${unitLabels.force}`
+          );
+        }
+      }
+    }
+  }
+
+  drawVectorArrow(ctx, x1, y1, x2, y2, color, lineWidth = 3, label = '') {
+    const headLen = 11;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+
+    // Shaft
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Arrowhead
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+
+    // Label
+    if (label) {
+      ctx.font = '600 11px system-ui, sans-serif';
+      const textX = x2 + 10 * Math.cos(angle);
+      const textY = y2 + 10 * Math.sin(angle);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Background badge
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillRect(textX - tw / 2 - 3, textY - 8, tw + 6, 16);
+
+      ctx.fillStyle = color;
+      ctx.fillText(label, textX, textY);
+    }
+
+    ctx.restore();
+  }
+
+  drawOverlayInfo() {
+    // Legend in top-left corner
+    const ctx = this.ctx;
+    ctx.save();
+    const lx = 14;
+    const ly = 16;
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, 150, 76, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = '600 11px system-ui, sans-serif';
+    ctx.fillStyle = '#1e293b';
+    ctx.fillText('Mechanical State', lx + 10, ly + 16);
+
+    // Tension line
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(lx + 10, ly + 32);
+    ctx.lineTo(lx + 32, ly + 32);
+    ctx.stroke();
+    ctx.font = '500 11px system-ui, sans-serif';
+    ctx.fillStyle = '#2563eb';
+    ctx.fillText('Tension (Stretched)', lx + 38, ly + 35);
+
+    // Compression line
+    ctx.strokeStyle = '#ea580c';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(lx + 10, ly + 48);
+    ctx.lineTo(lx + 32, ly + 48);
+    ctx.stroke();
+    ctx.fillStyle = '#ea580c';
+    ctx.fillText('Compression (Pushed)', lx + 38, ly + 51);
+
+    // Undeformed ghost line
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(lx + 10, ly + 64);
+    ctx.lineTo(lx + 32, ly + 64);
+    ctx.stroke();
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('Undeformed Ghost', lx + 38, ly + 67);
+
+    ctx.restore();
+  }
+}
+
+
+/**
+ * fbd.js - Free Body Diagram Renderer & Statics Data Explorer
+ * Renders isolated node pin with cut boundaries, all incoming/outgoing force vectors,
+ * orthogonal vector components, angle arcs, and exact equilibrium summations.
+ */
+
+class FBDExplorer {
+  constructor(canvas, physics, options = {}) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.physics = physics;
+
+    this.options = Object.assign({
+      selectedNodeId: 3, // Default to Node 4 (Bottom pin)
+      showComponents: true,
+      showAngles: true,
+      vectorScale: 2.2
+    }, options);
+
+    this.initEvents();
+    this.resize();
+  }
+
+  resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    this.width = rect.width;
+    this.height = rect.height;
+
+    this.canvas.width = this.width * dpr;
+    this.canvas.height = this.height * dpr;
+    this.ctx.scale(dpr, dpr);
+    this.render();
+  }
+
+  initEvents() {
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  setSelectedNode(nodeId) {
+    this.options.selectedNodeId = nodeId;
+    this.render();
+    this.updateEquilibriumEquations();
+  }
+
+  setShowComponents(show) {
+    this.options.showComponents = show;
+    this.render();
+  }
+
+  setShowAngles(show) {
+    this.options.showAngles = show;
+    this.render();
+  }
+
+  /**
+   * Main FBD Render
+   */
+  render() {
+    const ctx = this.ctx;
+    const w = this.width;
+    const h = this.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const nodeId = this.options.selectedNodeId;
+    if (nodeId === null || nodeId === undefined) return;
+
+    const node = this.physics.nodes[nodeId];
+    const unitLabels = this.physics.getUnitLabels();
+    const cx = w / 2;
+    const cy = h / 2;
+
+    // 1. Background grid & axis lines
+    this.drawAxes(cx, cy);
+
+    // 2. Imaginary cut boundary (dashed circular bubble as in Jacobs Fig 3.4/3.5)
+    this.drawCutBoundary(cx, cy);
+
+    // 3. Central Pin Joint
+    this.drawCenterPin(cx, cy, nodeId);
+
+    // 4. Force Vectors acting ON this pin
+    this.drawPinForces(cx, cy, nodeId, unitLabels);
+  }
+
+  drawAxes(cx, cy) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(226, 232, 240, 0.8)';
+    ctx.lineWidth = 1;
+
+    // +X and +Y axes
+    ctx.beginPath();
+    ctx.moveTo(15, cy);
+    ctx.lineTo(this.width - 15, cy);
+    ctx.moveTo(cx, 15);
+    ctx.lineTo(cx, this.height - 15);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.font = '500 11px system-ui, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.textAlign = 'right';
+    ctx.fillText('+x', this.width - 18, cy - 6);
+    ctx.textAlign = 'center';
+    ctx.fillText('+y', cx + 12, 22);
+
+    ctx.restore();
+  }
+
+  drawCutBoundary(cx, cy) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.35)';
+    ctx.setLineDash([5, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 78, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Label: "Imaginary Boundary"
+    ctx.font = 'italic 10px system-ui, sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.textAlign = 'left';
+    ctx.fillText('Imaginary Cut Boundary', cx - 74, cy - 82);
+    ctx.restore();
+  }
+
+  drawCenterPin(cx, cy, nodeId) {
+    const ctx = this.ctx;
+    const radius = 18;
+
+    ctx.save();
+    const grad = ctx.createRadialGradient(
+      cx - radius * 0.35, cy - radius * 0.35, radius * 0.1,
+      cx, cy, radius
+    );
+    grad.addColorStop(0, '#e0f2fe');
+    grad.addColorStop(0.35, '#38bdf8');
+    grad.addColorStop(0.85, '#0284c7');
+    grad.addColorStop(1, '#075985');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`Pin ${nodeId + 1}`, cx, cy);
+
+    ctx.restore();
+  }
+
+  drawPinForces(cx, cy, nodeId, unitLabels) {
+    const ctx = this.ctx;
+    const node = this.physics.nodes[nodeId];
+
+    // Collect all forces acting on this node:
+    // 1. Spring forces
+    const forces = [];
+
+    for (const res of this.physics.memberResults) {
+      if (res.nodeA === nodeId) {
+        // Force on A from spring
+        forces.push({
+          type: 'member',
+          name: res.shortName,
+          state: res.state,
+          fx: res.forceOnA.fx,
+          fy: res.forceOnA.fy,
+          mag: Math.hypot(res.forceOnA.fx, res.forceOnA.fy),
+          color: res.state === 'Tension' ? '#2563eb' : (res.state === 'Compression' ? '#dc2626' : '#64748b'),
+          label: `F_${res.shortName}`
+        });
+      } else if (res.nodeB === nodeId) {
+        // Force on B from spring
+        forces.push({
+          type: 'member',
+          name: res.shortName,
+          state: res.state,
+          fx: res.forceOnB.fx,
+          fy: res.forceOnB.fy,
+          mag: Math.hypot(res.forceOnB.fx, res.forceOnB.fy),
+          color: res.state === 'Tension' ? '#2563eb' : (res.state === 'Compression' ? '#dc2626' : '#64748b'),
+          label: `F_${res.shortName}`
+        });
+      }
+    }
+
+    // 2. External applied load
+    const extMag = Math.hypot(node.fx, node.fy);
+    if (extMag > 0.05) {
+      forces.push({
+        type: 'external',
+        name: 'Ext Load',
+        state: 'External',
+        fx: node.fx,
+        fy: node.fy,
+        mag: extMag,
+        color: '#d97706',
+        label: 'F_ext'
+      });
+    }
+
+    // 3. Support Reactions
+    const rx = this.physics.reactions[nodeId].rx;
+    const ry = this.physics.reactions[nodeId].ry;
+    const rMag = Math.hypot(rx, ry);
+    if ((node.fixedX || node.fixedY) && rMag > 0.05) {
+      forces.push({
+        type: 'reaction',
+        name: 'Reaction R',
+        state: 'Reaction',
+        fx: rx,
+        fy: ry,
+        mag: rMag,
+        color: '#7c3aed',
+        label: 'R'
+      });
+    }
+
+    // Scale vectors so they fit within the FBD canvas nicely
+    const maxMag = Math.max(...forces.map(f => f.mag), 1.0);
+    const maxLen = 75; // max arrow length in pixels
+    const minLen = 26;
+
+    for (const f of forces) {
+      if (f.mag < 0.01) continue;
+
+      const norm = f.mag / maxMag;
+      const arrowLen = minLen + norm * (maxLen - minLen);
+
+      // Force direction in math: (+fx, +fy)
+      // Screen coordinates: dx = +fx, dy = -fy
+      const dirX = f.fx / f.mag;
+      const dirY = -f.fy / f.mag;
+
+      const pinRadius = 18;
+      const startX = cx + dirX * pinRadius;
+      const startY = cy + dirY * pinRadius;
+      const endX = cx + dirX * (pinRadius + arrowLen);
+      const endY = cy + dirY * (pinRadius + arrowLen);
+
+      // Draw dashed orthogonal components if toggled
+      if (this.options.showComponents && (Math.abs(f.fx) > 0.1 && Math.abs(f.fy) > 0.1)) {
+        this.drawComponentProjections(cx, cy, startX, startY, endX, endY, f, pinRadius, arrowLen, dirX, dirY);
+      }
+
+      // Draw vector arrow
+      const textLabel = `${f.label} = ${f.mag.toFixed(1)} ${unitLabels.force}`;
+      this.drawVectorArrow(ctx, startX, startY, endX, endY, f.color, 3.2, textLabel);
+
+      // Draw angle arc if enabled
+      if (this.options.showAngles && Math.abs(f.fx) > 0.05 && Math.abs(f.fy) > 0.05) {
+        this.drawAngleArc(cx, cy, dirX, dirY, f);
+      }
+    }
+  }
+
+  drawComponentProjections(cx, cy, startX, startY, endX, endY, f, pinRadius, arrowLen, dirX, dirY) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = f.color;
+    ctx.globalAlpha = 0.45;
+    ctx.setLineDash([3, 3]);
+    ctx.lineWidth = 1.5;
+
+    // Component right triangle from start to end
+    // X-component first, then Y-component
+    const compCornerX = endX;
+    const compCornerY = startY;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(compCornerX, compCornerY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    // Component labels
+    ctx.globalAlpha = 0.85;
+    ctx.font = '500 10px system-ui, sans-serif';
+    ctx.fillStyle = f.color;
+    ctx.textAlign = 'center';
+
+    const unitLabels = this.physics.getUnitLabels();
+    const fxText = `${Math.abs(f.fx).toFixed(1)}`;
+    const fyText = `${Math.abs(f.fy).toFixed(1)}`;
+
+    // Draw fx label along horizontal leg
+    ctx.fillText(`Fx: ${fxText}`, (startX + compCornerX) / 2, compCornerY + (dirY > 0 ? -6 : 14));
+    // Draw fy label along vertical leg
+    ctx.textAlign = dirX > 0 ? 'left' : 'right';
+    ctx.fillText(`Fy: ${fyText}`, compCornerX + (dirX > 0 ? 5 : -5), (compCornerY + endY) / 2);
+
+    ctx.restore();
+  }
+
+  drawAngleArc(cx, cy, dirX, dirY, f) {
+    const ctx = this.ctx;
+    const angleRad = Math.atan2(Math.abs(f.fy), Math.abs(f.fx));
+    const deg = (angleRad * 180 / Math.PI).toFixed(0);
+
+    ctx.save();
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.2;
+
+    const arcR = 30;
+    const startAngle = dirX >= 0 ? 0 : Math.PI;
+    const sweep = dirY < 0 ? -angleRad : angleRad;
+    const endAngle = startAngle + (dirX >= 0 ? (dirY < 0 ? -angleRad : angleRad) : (dirY < 0 ? angleRad : -angleRad));
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, arcR, Math.min(startAngle, endAngle), Math.max(startAngle, endAngle));
+    ctx.stroke();
+
+    ctx.font = '500 10px system-ui, sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${deg}°`, cx + (dirX >= 0 ? 1 : -1) * (arcR + 10), cy + (dirY < 0 ? -1 : 1) * 12);
+    ctx.restore();
+  }
+
+  drawVectorArrow(ctx, x1, y1, x2, y2, color, lineWidth = 3, label = '') {
+    const headLen = 10;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+
+    if (label) {
+      ctx.font = '600 11px system-ui, sans-serif';
+      const textDist = 14;
+      const textX = x2 + textDist * Math.cos(angle);
+      const textY = y2 + textDist * Math.sin(angle);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(textX - tw / 2 - 3, textY - 8, tw + 6, 16);
+
+      ctx.fillStyle = color;
+      ctx.fillText(label, textX, textY);
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Generates equilibrium equations string and statics explanation for DOM
+   */
+  getEquilibriumDetails(nodeId) {
+    const node = this.physics.nodes[nodeId];
+    const unitLabels = this.physics.getUnitLabels();
+    const componentsX = [];
+    const componentsY = [];
+
+    // Members connected
+    for (const res of this.physics.memberResults) {
+      if (res.nodeA === nodeId) {
+        componentsX.push({ name: `F_${res.shortName}x`, val: res.forceOnA.fx, state: res.state });
+        componentsY.push({ name: `F_${res.shortName}y`, val: res.forceOnA.fy, state: res.state });
+      } else if (res.nodeB === nodeId) {
+        componentsX.push({ name: `F_${res.shortName}x`, val: res.forceOnB.fx, state: res.state });
+        componentsY.push({ name: `F_${res.shortName}y`, val: res.forceOnB.fy, state: res.state });
+      }
+    }
+
+    // External force
+    if (Math.abs(node.fx) > 0.05) {
+      componentsX.push({ name: 'F_ext,x', val: node.fx, state: 'Ext' });
+    }
+    if (Math.abs(node.fy) > 0.05) {
+      componentsY.push({ name: 'F_ext,y', val: node.fy, state: 'Ext' });
+    }
+
+    // Reaction force
+    const rx = this.physics.reactions[nodeId].rx;
+    const ry = this.physics.reactions[nodeId].ry;
+    if (node.fixedX && Math.abs(rx) > 0.05) {
+      componentsX.push({ name: 'R_x', val: rx, state: 'Reaction' });
+    }
+    if (node.fixedY && Math.abs(ry) > 0.05) {
+      componentsY.push({ name: 'R_y', val: ry, state: 'Reaction' });
+    }
+
+    const sumX = componentsX.reduce((acc, c) => acc + c.val, 0);
+    const sumY = componentsY.reduce((acc, c) => acc + c.val, 0);
+
+    // Format equation lines
+    const eqXStr = componentsX.length > 0
+      ? componentsX.map(c => `${c.val >= 0 ? '+' : '-'} ${Math.abs(c.val).toFixed(2)} (${c.name})`).join(' ') + ` = ${sumX.toFixed(2)} ${unitLabels.force}`
+      : `0.00 = 0.00 ${unitLabels.force}`;
+
+    const eqYStr = componentsY.length > 0
+      ? componentsY.map(c => `${c.val >= 0 ? '+' : '-'} ${Math.abs(c.val).toFixed(2)} (${c.name})`).join(' ') + ` = ${sumY.toFixed(2)} ${unitLabels.force}`
+      : `0.00 = 0.00 ${unitLabels.force}`;
+
+    const isBalanced = Math.abs(sumX) < 0.05 && Math.abs(sumY) < 0.05;
+
+    // Statics pedagogical explanation
+    let explanation = '';
+    if (nodeId === 3) { // Bottom pin
+      explanation = `<strong>Pin 4 (Bottom):</strong> The applied downward force <code>F_ext</code> is balanced by the upward vertical components of diagonal springs <code>4-1</code> and <code>4-2</code>. Because both springs pull upward and inward, both are in <strong>Tension</strong>. Their horizontal pull cancels out by symmetry.`;
+    } else if (nodeId === 1) { // Left pin
+      explanation = `<strong>Pin 2 (Left):</strong> Spring <code>1-2</code> pulls up-and-right, while Spring <code>4-1</code> pulls down-and-right. Both diagonal springs exert a net rightward pull toward the center. To satisfy horizontal equilibrium (&Sigma;Fx = 0), the middle cross-spring <code>2-3</code> must <strong>push leftward</strong> on Pin 2. A member that pushes outward on its endpoints is in <strong>Compression</strong>!`;
+    } else if (nodeId === 2) { // Right pin
+      explanation = `<strong>Pin 3 (Right):</strong> Symmetrical to Pin 2. Springs <code>1-3</code> and <code>4-2</code> exert a net leftward pull toward the center. Cross-spring <code>2-3</code> pushes rightward on Pin 3, confirming <strong>Compression</strong> across the polymer network waist.`;
+    } else if (nodeId === 0) { // Top pin
+      explanation = `<strong>Pin 1 (Top / Support):</strong> Diagonal springs <code>1-2</code> and <code>1-3</code> pull downward on this pin with tension. The rigid ceiling support provides an upward reaction force <code>R_y</code> that exactly equals the total applied vertical load.`;
+    }
+
+    return {
+      nodeName: node.name,
+      sumX: sumX,
+      sumY: sumY,
+      eqXStr: eqXStr.startsWith('+ ') ? eqXStr.substring(2) : eqXStr,
+      eqYStr: eqYStr.startsWith('+ ') ? eqYStr.substring(2) : eqYStr,
+      isBalanced: isBalanced,
+      explanation: explanation
+    };
+  }
+
+  updateEquilibriumEquations() {
+    if (this.onEquationsUpdateCallback) {
+      const details = this.getEquilibriumDetails(this.options.selectedNodeId);
+      this.onEquationsUpdateCallback(details);
+    }
+  }
+}
+
+
+/**
+ * app.js - Main Application Coordinator for Polymer Network Mechanics
+ * Connects Physics Engine, Canvas Renderer, FBD Explorer, Controls, and Data Table.
+ */
+
+
+
+
+
+class PolymerApp {
+  constructor() {
+    this.physics = new PolymerNetworkPhysics();
+    this.selectedNodeId = 3; // Default to Node 4 (Bottom pin)
+
+    this.initElements();
+    this.initViews();
+    this.initEventListeners();
+    this.applyPreset('textbook');
+    this.updateAll();
+  }
+
+  initElements() {
+    // Sliders
+    this.fySlider = document.getElementById('slider-fy');
+    this.fyVal = document.getElementById('val-fy');
+    this.fxSlider = document.getElementById('slider-fx');
+    this.fxVal = document.getElementById('val-fx');
+
+    this.kOuterSlider = document.getElementById('slider-kouter');
+    this.kOuterVal = document.getElementById('val-kouter');
+    this.kMidSlider = document.getElementById('slider-kmid');
+    this.kMidVal = document.getElementById('val-kmid');
+
+    this.scaleSlider = document.getElementById('slider-scale');
+    this.scaleVal = document.getElementById('val-scale');
+
+    // Status elements
+    this.statMaxStress = document.getElementById('stat-max-stress');
+    this.statCritMember = document.getElementById('stat-crit-member');
+    this.statDisp = document.getElementById('stat-disp');
+    this.statEnergy = document.getElementById('stat-energy');
+
+    // FBD & Statics elements
+    this.eqSumX = document.getElementById('eq-sum-x');
+    this.eqSumY = document.getElementById('eq-sum-y');
+    this.fbdExplanation = document.getElementById('fbd-explanation');
+    this.tableBody = document.getElementById('table-body');
+
+    // Modal
+    this.theoryModal = document.getElementById('theory-modal');
+    this.openTheoryBtn = document.getElementById('btn-open-theory');
+    this.closeTheoryBtn = document.getElementById('btn-close-theory');
+
+    // Export buttons
+    this.btnExportCsv = document.getElementById('btn-export-csv');
+    this.btnReset = document.getElementById('btn-reset');
+
+    // Solver mode select
+    this.solverSelect = document.getElementById('select-solver');
+    this.unitSelect = document.getElementById('select-units');
+
+    // Checkboxes
+    this.chkGhost = document.getElementById('chk-ghost');
+    this.chkComponents = document.getElementById('chk-components');
+    this.chkAngles = document.getElementById('chk-angles');
+  }
+
+  initViews() {
+    const simCanvas = document.getElementById('sim-canvas');
+    const fbdCanvas = document.getElementById('fbd-canvas');
+
+    this.renderer = new NetworkRenderer(simCanvas, this.physics, {
+      selectedNodeId: this.selectedNodeId
+    });
+
+    this.fbdExplorer = new FBDExplorer(fbdCanvas, this.physics, {
+      selectedNodeId: this.selectedNodeId
+    });
+
+    // Wire callbacks
+    this.renderer.onNodeSelectCallback = (nodeId) => {
+      this.selectNode(nodeId);
+    };
+
+    this.renderer.onStateChangeCallback = () => {
+      this.syncControlsFromPhysics();
+      this.updateAll();
+    };
+
+    this.fbdExplorer.onEquationsUpdateCallback = (details) => {
+      this.renderEquilibriumDetails(details);
+    };
+  }
+
+  initEventListeners() {
+    // Sliders
+    this.fySlider.addEventListener('input', () => {
+      const fy = parseFloat(this.fySlider.value);
+      const fx = parseFloat(this.fxSlider.value);
+      this.physics.setAppliedLoad(3, fx, fy);
+      this.fyVal.textContent = `${fy.toFixed(0)} ${this.physics.getUnitLabels().force}`;
+      this.updateAll();
+    });
+
+    this.fxSlider.addEventListener('input', () => {
+      const fx = parseFloat(this.fxSlider.value);
+      const fy = parseFloat(this.fySlider.value);
+      this.physics.setAppliedLoad(3, fx, fy);
+      this.fxVal.textContent = `${fx.toFixed(0)} ${this.physics.getUnitLabels().force}`;
+      this.updateAll();
+    });
+
+    this.kOuterSlider.addEventListener('input', () => {
+      const ko = parseFloat(this.kOuterSlider.value);
+      const km = parseFloat(this.kMidSlider.value);
+      this.physics.setStiffnesses(ko, km);
+      this.kOuterVal.textContent = `${ko.toFixed(0)} ${this.physics.getUnitLabels().stiffness}`;
+      this.updateAll();
+    });
+
+    this.kMidSlider.addEventListener('input', () => {
+      const ko = parseFloat(this.kOuterSlider.value);
+      const km = parseFloat(this.kMidSlider.value);
+      this.physics.setStiffnesses(ko, km);
+      this.kMidVal.textContent = `${km.toFixed(0)} ${this.physics.getUnitLabels().stiffness}`;
+      this.updateAll();
+    });
+
+    this.scaleSlider.addEventListener('input', () => {
+      const scale = parseFloat(this.scaleSlider.value);
+      this.renderer.options.dispScale = scale;
+      this.scaleVal.textContent = `${scale.toFixed(1)}x`;
+      this.renderer.render();
+    });
+
+    // Checkboxes
+    this.chkGhost.addEventListener('change', () => {
+      this.renderer.options.showGhost = this.chkGhost.checked;
+      this.renderer.render();
+    });
+
+    this.chkComponents.addEventListener('change', () => {
+      this.fbdExplorer.setShowComponents(this.chkComponents.checked);
+    });
+
+    this.chkAngles.addEventListener('change', () => {
+      this.fbdExplorer.setShowAngles(this.chkAngles.checked);
+    });
+
+    // Node selection chips
+    document.querySelectorAll('.node-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const nodeId = parseInt(chip.getAttribute('data-node'), 10);
+        this.selectNode(nodeId);
+      });
+    });
+
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-preset');
+        this.applyPreset(preset);
+      });
+    });
+
+    // Boundary conditions checkboxes (Nodes 1 to 4)
+    for (let i = 0; i < 4; i++) {
+      const chkFixX = document.getElementById(`fix-${i + 1}-x`);
+      const chkFixY = document.getElementById(`fix-${i + 1}-y`);
+
+      if (chkFixX && chkFixY) {
+        chkFixX.addEventListener('change', () => {
+          this.physics.setNodeFixation(i, chkFixX.checked, chkFixY.checked);
+          this.updateAll();
+        });
+        chkFixY.addEventListener('change', () => {
+          this.physics.setNodeFixation(i, chkFixX.checked, chkFixY.checked);
+          this.updateAll();
+        });
+      }
+    }
+
+    // Solver mode
+    this.solverSelect.addEventListener('change', () => {
+      this.physics.setSolverMode(this.solverSelect.value);
+      this.updateAll();
+    });
+
+    // Units
+    this.unitSelect.addEventListener('change', () => {
+      this.physics.setUnitMode(this.unitSelect.value);
+      this.updateUnitsDisplay();
+      this.updateAll();
+    });
+
+    // Reset button
+    this.btnReset.addEventListener('click', () => {
+      this.applyPreset('textbook');
+    });
+
+    // Export CSV
+    this.btnExportCsv.addEventListener('click', () => {
+      this.exportDataCSV();
+    });
+
+    // Theory Modal
+    this.openTheoryBtn.addEventListener('click', () => {
+      this.theoryModal.classList.add('active');
+    });
+
+    this.closeTheoryBtn.addEventListener('click', () => {
+      this.theoryModal.classList.remove('active');
+    });
+
+    this.theoryModal.addEventListener('click', (e) => {
+      if (e.target === this.theoryModal) {
+        this.theoryModal.classList.remove('active');
+      }
+    });
+  }
+
+  selectNode(nodeId) {
+    this.selectedNodeId = nodeId;
+    this.renderer.options.selectedNodeId = nodeId;
+    this.fbdExplorer.setSelectedNode(nodeId);
+
+    // Update active UI chips
+    document.querySelectorAll('.node-chip').forEach(chip => {
+      const id = parseInt(chip.getAttribute('data-node'), 10);
+      if (id === nodeId) {
+        chip.classList.add('active');
+      } else {
+        chip.classList.remove('active');
+      }
+    });
+
+    this.renderer.render();
+  }
+
+  applyPreset(presetKey) {
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-preset') === presetKey);
+    });
+
+    // Reset all nodes to standard fixation
+    this.physics.nodes[0].fixedX = true;
+    this.physics.nodes[0].fixedY = true;
+    this.physics.nodes[1].fixedX = false;
+    this.physics.nodes[1].fixedY = false;
+    this.physics.nodes[2].fixedX = false;
+    this.physics.nodes[2].fixedY = false;
+    this.physics.nodes[3].fixedX = false;
+    this.physics.nodes[3].fixedY = false;
+
+    // Clear loads
+    for (let i = 0; i < 4; i++) {
+      this.physics.nodes[i].fx = 0;
+      this.physics.nodes[i].fy = 0;
+    }
+
+    if (presetKey === 'textbook') {
+      // Textbook baseline: -25 N downward at Pin 4, standard stiffnesses
+      this.physics.nodes[3].fy = -25.0;
+      this.physics.nodes[3].fx = 0.0;
+      this.physics.setStiffnesses(50.0, 40.0);
+    } else if (presetKey === 'soft-cross') {
+      // Soft middle spring (compliant cross-linker)
+      this.physics.nodes[3].fy = -30.0;
+      this.physics.nodes[3].fx = 0.0;
+      this.physics.setStiffnesses(60.0, 8.0);
+    } else if (presetKey === 'rigid-cross') {
+      // Rigid middle cross-linker
+      this.physics.nodes[3].fy = -30.0;
+      this.physics.nodes[3].fx = 0.0;
+      this.physics.setStiffnesses(50.0, 150.0);
+    } else if (presetKey === 'shear') {
+      // Asymmetric shear: lateral force at Pin 4
+      this.physics.nodes[3].fy = -20.0;
+      this.physics.nodes[3].fx = 20.0;
+      this.physics.setStiffnesses(50.0, 40.0);
+    } else if (presetKey === 'compression-test') {
+      // Upward compressive push at Pin 4
+      this.physics.nodes[3].fy = +25.0;
+      this.physics.nodes[3].fx = 0.0;
+      this.physics.setStiffnesses(50.0, 40.0);
+    } else if (presetKey === 'biaxial') {
+      // Biaxial tension: pull down and pull sides outward
+      this.physics.nodes[3].fy = -25.0;
+      this.physics.nodes[1].fx = -15.0;
+      this.physics.nodes[2].fx = +15.0;
+      this.physics.setStiffnesses(50.0, 40.0);
+    }
+
+    this.physics.solve();
+    this.syncControlsFromPhysics();
+    this.updateAll();
+  }
+
+  syncControlsFromPhysics() {
+    const fy = this.physics.nodes[3].fy;
+    const fx = this.physics.nodes[3].fx;
+    this.fySlider.value = fy;
+    this.fxSlider.value = fx;
+
+    const u = this.physics.getUnitLabels();
+    this.fyVal.textContent = `${fy.toFixed(0)} ${u.force}`;
+    this.fxVal.textContent = `${fx.toFixed(0)} ${u.force}`;
+
+    const kOuter = this.physics.members[0].k;
+    const kMid = this.physics.members[4].k;
+    this.kOuterSlider.value = kOuter;
+    this.kMidSlider.value = kMid;
+    this.kOuterVal.textContent = `${kOuter.toFixed(0)} ${u.stiffness}`;
+    this.kMidVal.textContent = `${kMid.toFixed(0)} ${u.stiffness}`;
+
+    // Update fixation checkboxes
+    for (let i = 0; i < 4; i++) {
+      const cx = document.getElementById(`fix-${i + 1}-x`);
+      const cy = document.getElementById(`fix-${i + 1}-y`);
+      if (cx) cx.checked = this.physics.nodes[i].fixedX;
+      if (cy) cy.checked = this.physics.nodes[i].fixedY;
+    }
+  }
+
+  updateUnitsDisplay() {
+    const u = this.physics.getUnitLabels();
+    document.querySelectorAll('.unit-force').forEach(el => el.textContent = u.force);
+    document.querySelectorAll('.unit-disp').forEach(el => el.textContent = u.disp);
+    document.querySelectorAll('.unit-stiffness').forEach(el => el.textContent = u.stiffness);
+    document.querySelectorAll('.unit-stress').forEach(el => el.textContent = u.stress);
+    document.querySelectorAll('.unit-energy').forEach(el => el.textContent = u.energy);
+  }
+
+  updateAll() {
+    const u = this.physics.getUnitLabels();
+
+    // 1. Update Status Dashboard
+    this.statMaxStress.textContent = `${this.physics.status.maxStress.toFixed(1)} ${u.stress}`;
+    this.statCritMember.textContent = `Member: ${this.physics.status.criticalMember.replace('Spring ', '')}`;
+    this.statDisp.textContent = `${this.physics.status.botDisplacement.toFixed(2)} ${u.disp}`;
+    this.statEnergy.textContent = `${this.physics.status.strainEnergy.toFixed(1)} ${u.energy}`;
+
+    // 2. Render Simulation Panel
+    this.renderer.render();
+
+    // 3. Render FBD Panel
+    this.fbdExplorer.render();
+    const fbdDetails = this.fbdExplorer.getEquilibriumDetails(this.selectedNodeId);
+    this.renderEquilibriumDetails(fbdDetails);
+
+    // 4. Update Analytical Data Table
+    this.renderDataTable();
+  }
+
+  renderEquilibriumDetails(details) {
+    if (!details) return;
+
+    const u = this.physics.getUnitLabels();
+    this.eqSumX.innerHTML = `&Sigma;Fx = ${details.eqXStr}`;
+    this.eqSumY.innerHTML = `&Sigma;Fy = ${details.eqYStr}`;
+
+    this.eqSumX.className = `eq-val ${Math.abs(details.sumX) < 0.05 ? 'balanced' : 'unbalanced'}`;
+    this.eqSumY.className = `eq-val ${Math.abs(details.sumY) < 0.05 ? 'balanced' : 'unbalanced'}`;
+
+    this.fbdExplanation.innerHTML = details.explanation;
+  }
+
+  renderDataTable() {
+    const u = this.physics.getUnitLabels();
+    let html = '';
+
+    for (const res of this.physics.memberResults) {
+      const stateBadge = res.state === 'Tension'
+        ? `<span class="badge badge-tension">Tension</span>`
+        : (res.state === 'Compression'
+          ? `<span class="badge badge-compression">Compression</span>`
+          : `<span class="badge">Neutral</span>`);
+
+      const forceDisplay = `${res.force >= 0 ? '+' : ''}${res.force.toFixed(2)}`;
+      const strainDisplay = `${(res.strain * 100).toFixed(2)}%`;
+      const stressDisplay = `${res.stress.toFixed(2)}`;
+
+      html += `
+        <tr>
+          <td><strong>${res.shortName}</strong></td>
+          <td>${res.L0.toFixed(1)}</td>
+          <td>${res.L.toFixed(1)}</td>
+          <td>${res.deltaL >= 0 ? '+' : ''}${res.deltaL.toFixed(2)}</td>
+          <td>${forceDisplay}</td>
+          <td>${stressDisplay}</td>
+          <td>${strainDisplay}</td>
+          <td>${stateBadge}</td>
+        </tr>
+      `;
+    }
+
+    this.tableBody.innerHTML = html;
+  }
+
+  exportDataCSV() {
+    const u = this.physics.getUnitLabels();
+    let csv = `Member,L0 (${u.length}),L (${u.length}),deltaL (${u.length}),k (${u.stiffness}),Force (${u.force}),Stress (${u.stress}),Strain (%),State\n`;
+
+    for (const res of this.physics.memberResults) {
+      csv += `"${res.name}",${res.L0.toFixed(2)},${res.L.toFixed(2)},${res.deltaL.toFixed(2)},${res.k.toFixed(1)},${res.force.toFixed(2)},${res.stress.toFixed(2)},${(res.strain * 100).toFixed(2)},"${res.state}"\n`;
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `polymer_network_analysis_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+// Initialize on DOM load
+window.addEventListener('DOMContentLoaded', () => {
+  window.polymerApp = new PolymerApp();
+});
+
+
+</script>
+</body>
+</html>

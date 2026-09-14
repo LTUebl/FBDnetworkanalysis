@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polymer Network Mechanics Simulator - Jacobs Fig 3.3</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="./EBLlogo.png" alt="EBL Logo" style="height: 38px; width: auto; border-radius: 4px; object-fit: contain;">
+      <div class="brand-title">
+        <h1>Polymer Network Mechanics Simulator</h1>
+        <p>Interactive Pin-Jointed Deformable Body &amp; Free Body Diagram Explorer &bull; Jacobs, Huang &amp; Kwon (Fig 3.3)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btn-open-theory" class="btn" title="View Textbook Theory &amp; Derivation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        Theory &amp; Statics
+      </button>
+      <button id="btn-reset" class="btn" title="Reset Simulation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        Reset
+      </button>
+      <button id="btn-export-csv" class="btn btn-primary" title="Export Calculated Statics Data">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export CSV
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Panel Main Layout -->
+  <main class="app-container">
+
+    <!-- ========================================================
+         PANEL 1 (LEFT): MAIN SIMULATION PANEL
+         ======================================================== -->
+    <section class="panel panel-left">
+      <div class="panel-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          Main Simulation Panel
+        </h2>
+        <div class="canvas-hint">
+          <span>Tip: Click &amp; drag pins directly</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="canvas-wrapper">
+          <canvas id="sim-canvas" class="sim-canvas"></canvas>
+          <div class="canvas-toolbar">
+            <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; cursor: pointer;">
+              <input type="checkbox" id="chk-ghost" checked>
+              <span>Undeformed Ghost</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Scale & Visual Controls -->
+        <div class="control-card">
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Deformation Display Scale</span>
+              <span id="val-scale" class="slider-val">1.0x</span>
+            </div>
+            <input type="range" id="slider-scale" min="0.5" max="3.0" step="0.1" value="1.0">
+            <span style="font-size: 0.7rem; color: var(--text-light);">Magnifies visual displacement for small strain visualization</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PANEL 2 (CENTER): CONTROLS & STATUS
+         ======================================================== -->
+    <section class="panel panel-center">
+      <div class="panel-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Controls &amp; Status
+        </h2>
+        <span class="badge">Live Feedback</span>
+      </div>
+
+      <div class="panel-body">
+        <!-- Status Dashboard -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Status Dashboard</span>
+            <span class="badge" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">Stable Equilibrium</span>
+          </div>
+          <div class="status-grid">
+            <div class="status-stat">
+              <span class="stat-label">Maximum Stress (&sigma;<sub>max</sub>)</span>
+              <span id="stat-max-stress" class="stat-value">0.0 kPa</span>
+              <span id="stat-crit-member" class="stat-sub">Member: -</span>
+            </div>
+            <div class="status-stat">
+              <span class="stat-label">Bottom Displacement (|&Delta;u|)</span>
+              <span id="stat-disp" class="stat-value">0.00 mm</span>
+              <span class="stat-sub">Pin 4 vertical drop</span>
+            </div>
+            <div class="status-stat">
+              <span class="stat-label">Strain Energy (U)</span>
+              <span id="stat-energy" class="stat-value">0.0 mJ</span>
+              <span class="stat-sub">&Sigma; &frac12; k &Delta;L<sup>2</sup></span>
+            </div>
+            <div class="status-stat">
+              <span class="stat-label">Solver Framework</span>
+              <select id="select-solver" style="margin-top:0.25rem; font-size:0.75rem; padding:0.2rem; border-radius:4px; border:1px solid #cbd5e1;">
+                <option value="nonlinear" selected>Nonlinear (Large Strain)</option>
+                <option value="linear">Linear (Small Strain)</option>
+              </select>
+              <span class="stat-sub">Newton-Raphson vs Matrix</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applied Load Sliders -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Applied Load (Node 4 - Bottom Pin)</span>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Vertical Force (F<sub>y</sub>)</span>
+              <span id="val-fy" class="slider-val">-25 N</span>
+            </div>
+            <input type="range" id="slider-fy" min="-80" max="60" step="1" value="-25">
+            <span style="font-size:0.68rem; color:var(--text-light);">&darr; Negative = downward tension, &uarr; Positive = upward compression</span>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Horizontal Force (F<sub>x</sub>)</span>
+              <span id="val-fx" class="slider-val">0 N</span>
+            </div>
+            <input type="range" id="slider-fx" min="-40" max="40" step="1" value="0">
+            <span style="font-size:0.68rem; color:var(--text-light);">&larr; Negative = left, &rarr; Positive = right (induces shear)</span>
+          </div>
+        </div>
+
+        <!-- Spring Stiffness Controls -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Spring Stiffness (k)</span>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Outer Diagonals (k<sub>outer</sub>)</span>
+              <span id="val-kouter" class="slider-val">50 N/mm</span>
+            </div>
+            <input type="range" id="slider-kouter" min="10" max="150" step="5" value="50">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Middle Cross-Spring (k<sub>mid</sub>)</span>
+              <span id="val-kmid" class="slider-val">40 N/mm</span>
+            </div>
+            <input type="range" id="slider-kmid" min="5" max="150" step="5" value="40">
+          </div>
+        </div>
+
+        <!-- Node Fixation / Boundary Conditions -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Toggle Node Fixation</span>
+          </div>
+          <div class="fixation-grid">
+            <div class="fixation-item">
+              <div class="node-num">Pin 1 (Top)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-1-x" checked> Fix X</label>
+                <label><input type="checkbox" id="fix-1-y" checked> Fix Y</label>
+              </div>
+            </div>
+            <div class="fixation-item">
+              <div class="node-num">Pin 2 (Left)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-2-x"> Fix X</label>
+                <label><input type="checkbox" id="fix-2-y"> Fix Y</label>
+              </div>
+            </div>
+            <div class="fixation-item">
+              <div class="node-num">Pin 3 (Right)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-3-x"> Fix X</label>
+                <label><input type="checkbox" id="fix-3-y"> Fix Y</label>
+              </div>
+            </div>
+            <div class="fixation-item">
+              <div class="node-num">Pin 4 (Bot)</div>
+              <div class="fixation-toggle">
+                <label><input type="checkbox" id="fix-4-x"> Fix X</label>
+                <label><input type="checkbox" id="fix-4-y"> Fix Y</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Educational Presets -->
+        <div class="control-card">
+          <div class="control-title">
+            <span>Educational Presets</span>
+          </div>
+          <div class="preset-grid">
+            <button class="preset-btn active" data-preset="textbook">
+              <span class="name">1. Textbook Baseline</span>
+              <span class="desc">Jacobs Fig 3.3 tensile pull</span>
+            </button>
+            <button class="preset-btn" data-preset="soft-cross">
+              <span class="name">2. Soft Cross-Linker</span>
+              <span class="desc">Compliant middle polymer</span>
+            </button>
+            <button class="preset-btn" data-preset="rigid-cross">
+              <span class="name">3. Rigid Cross-Linker</span>
+              <span class="desc">Resists lateral pinch</span>
+            </button>
+            <button class="preset-btn" data-preset="shear">
+              <span class="name">4. Asymmetric Shear</span>
+              <span class="desc">Diagonal load test</span>
+            </button>
+            <button class="preset-btn" data-preset="compression-test">
+              <span class="name">5. Network Compression</span>
+              <span class="desc">Upward push on pin 4</span>
+            </button>
+            <button class="preset-btn" data-preset="biaxial">
+              <span class="name">6. Biaxial Pull</span>
+              <span class="desc">Transverse lateral stretch</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Unit System Toggle -->
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">
+          <span style="color:var(--text-muted);">Units:</span>
+          <select id="select-units" style="font-size:0.75rem; padding:0.2rem 0.4rem; border-radius:4px; border:1px solid #cbd5e1;">
+            <option value="macro" selected>Macro Scale (N, mm, kPa)</option>
+            <option value="micro">Cellular Scale (nN, &mu;m, Pa)</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PANEL 3 (RIGHT): FBD & DATA EXPLORER
+         ======================================================== -->
+    <section class="panel panel-right">
+      <div class="panel-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          FBD &amp; Data Explorer
+        </h2>
+        <span class="badge" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">Analytical Practice</span>
+      </div>
+
+      <div class="panel-body">
+        <!-- Node Selection Matrix -->
+        <div>
+          <div class="control-title" style="margin-bottom:0.4rem;">
+            <span>Isolate Pin / Node</span>
+          </div>
+          <div class="node-matrix">
+            <div class="node-chip" data-node="0">
+              <div class="chip-title">Pin 1</div>
+              <div class="chip-sub">Top (Support)</div>
+            </div>
+            <div class="node-chip" data-node="1">
+              <div class="chip-title">Pin 2</div>
+              <div class="chip-sub">Left Pin</div>
+            </div>
+            <div class="node-chip" data-node="2">
+              <div class="chip-title">Pin 3</div>
+              <div class="chip-sub">Right Pin</div>
+            </div>
+            <div class="node-chip active" data-node="3">
+              <div class="chip-title">Pin 4</div>
+              <div class="chip-sub">Bottom (Loaded)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Free Body Diagram Canvas -->
+        <div class="fbd-wrapper">
+          <canvas id="fbd-canvas" class="fbd-canvas"></canvas>
+        </div>
+
+        <!-- Display Toggles for FBD -->
+        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+          <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
+            <input type="checkbox" id="chk-components" checked>
+            <span>Show Orthogonal Components (F<sub>x</sub>, F<sub>y</sub>)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
+            <input type="checkbox" id="chk-angles" checked>
+            <span>Show Angles (&theta;)</span>
+          </label>
+        </div>
+
+        <!-- Equilibrium Equations Box -->
+        <div class="eq-box">
+          <div class="eq-row">
+            <span class="eq-label">&Sigma; F<sub>x</sub> = 0</span>
+            <span id="eq-sum-x" class="eq-val balanced">0.00 = 0.00 N</span>
+          </div>
+          <div class="eq-row">
+            <span class="eq-label">&Sigma; F<sub>y</sub> = 0</span>
+            <span id="eq-sum-y" class="eq-val balanced">0.00 = 0.00 N</span>
+          </div>
+        </div>
+
+        <!-- Statics Explanation Callout -->
+        <div id="fbd-explanation" class="fbd-explanation">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Analytical Summary Table -->
+        <div>
+          <div class="control-title" style="margin-bottom:0.4rem;">
+            <span>Polymer Member Data Table</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>L<sub>0</sub> (<span class="unit-disp">mm</span>)</th>
+                  <th>L (<span class="unit-disp">mm</span>)</th>
+                  <th>&Delta;L (<span class="unit-disp">mm</span>)</th>
+                  <th>Force (<span class="unit-force">N</span>)</th>
+                  <th>Stress (<span class="unit-stress">kPa</span>)</th>
+                  <th>Strain</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Theory & Derivation Modal (Jacobs Ch 3) -->
+  <div id="theory-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Mechanics of Deformable Bodies &bull; Jacobs Section 3.2</h3>
+        <button id="btn-close-theory" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          In <em>Introduction to Cell Mechanics and Mechanobiology</em> (Jacobs, Huang, &amp; Kwon), Figure 3.3 models a network of polymers as a pin-jointed truss system where individual polymer strands behave like elastic springs with stiffness \(k\).
+        </p>
+
+        <div class="theory-callout">
+          <strong>1. Isolation of Pin 4 (Bottom Node):</strong>
+          <p>
+            When a tensile load \(F\) is applied vertically downward, Pin 4 experiences three forces: the applied force \(-F \hat{j}\), and the tension forces from diagonal members 4-1 and 4-2. By symmetry:
+          </p>
+          <div class="math-block">
+            &Sigma; F<sub>y</sub> = 2 &times; T<sub>diag</sub> &times; cos(&theta;) - F = 0<br>
+            &rArr; T<sub>diag</sub> = F / (2 &times; cos(&theta;))  (Tension)
+          </div>
+        </div>
+
+        <div class="theory-callout">
+          <strong>2. Isolation of Pin 2 (Left Node) &amp; The Compression Paradox:</strong>
+          <p>
+            Students often ask: <em>Why is the middle horizontal polymer in compression even though the overall network is pulled in tension?</em>
+          </p>
+          <p>
+            At Pin 2, both the top spring (1-2) and the bottom spring (4-1) pull upward/downward and <strong>rightward toward the central axis</strong>:
+          </p>
+          <div class="math-block">
+            F<sub>pull, x</sub> = T<sub>1-2</sub> &times; sin(&theta;) + T<sub>4-1</sub> &times; sin(&theta;) &gt; 0 (directed to the right)<br><br>
+            For horizontal equilibrium (&Sigma; F<sub>x</sub> = 0):<br>
+            F<sub>spring 2-3</sub> must push to the left: F<sub>2-3</sub> = -2 &times; T<sub>diag</sub> &times; sin(&theta;) = -F &times; tan(&theta;)<br>
+            Because the member <strong>pushes outward against its pins</strong>, it is in <strong>COMPRESSION</strong>!
+          </div>
+        </div>
+
+        <div class="theory-callout">
+          <strong>3. Biological Significance:</strong>
+          <p>
+            This simple 5-polymer network illustrates how tension in the extracellular matrix or actin cortex can produce localized compressive loads on internal struts (e.g. microtubules or cross-linking actin filaments), fundamental to the <em>tensegrity architecture</em> of biological cells.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
